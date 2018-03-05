@@ -46,16 +46,6 @@ func nFromString(ab string, n int) (string, float64) {
 
 }
 
-// minInt returns the smallest integer from among the arguments
-func minInt(n1 int, nums ...int) int {
-	min := n1
-	for _, n := range nums {
-		if n < min {
-			min = n
-		}
-	}
-	return min
-}
 
 // randomInt32 creates a random 32 bit unsigned integer
 func randomInt32() uint32 {
