@@ -102,7 +102,7 @@ func (g WordListPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
 	capWords := make(map[int]bool, attrs.Length)
 	switch attrs.Capitalize {
 	case CSFirst:
-		capWords[1] = true
+		capWords[0] = true
 	case CSOne:
 		w := int(Int31n(uint32(attrs.Length)))
 		capWords[w] = true
