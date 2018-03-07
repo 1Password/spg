@@ -15,10 +15,10 @@ const doFallibleTests = false
 const entCompTolerance = 10000 // entropy must be correct to 1 part in ten thousand
 
 var abWords []string                          // this is where we will put the wordlist for testing
-const wordsFilePath = "../pwd/AgileWords.txt" // relative to where test in invoked
+const wordsFilePath = "testdata/AgileWords.txt" // relative to where test in invoked
 
 var abSyllables []string                             // this is where we will put the wordlist for testing
-const syllableFilePath = "../pwd/AgileSyllables.txt" // relative to where test in invoked
+const syllableFilePath = "testdata/AgileSyllables.txt" // relative to where test in invoked
 
 func init() {
 	wlFile, err := os.Open(wordsFilePath)
