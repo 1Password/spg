@@ -146,6 +146,45 @@ func TestWLCapitalization(t *testing.T) {
 	}
 
 }
+
+func TestWLFirstCap(t *testing.T) {
+	threeG, err := NewWordListPasswordGenerator([]string{"one", "two", "three"})
+	if err != nil {
+		t.Errorf("failed to create WL generator: %v", err)
+	}
+	// Test with random capitalization
+	length := 5
+	attrs := NewGenAttrs(length)
+	attrs.SeparatorChar = " "
+	attrs.Capitalize = CSFirst
+
+	for i := 0; i < 20; i++ {
+		p, err := threeG.Generate(*attrs)
+		ent := p.Entropy()
+		expectedEnt := float32(7.92481) // 5 * (log2(3))
+		if err != nil {
+			t.Errorf("failed to generate %d word password: %v", length, err)
+		}
+		if cmpFloat32(ent, expectedEnt, entCompTolerance) != 0 {
+			t.Errorf("expected entropy (%.6f) != returned entropy (%.6f)", expectedEnt, ent)
+		}
+		firstWRE := "\\p{Lu}\\p{Ll}+"
+		wRE := "\\p{Ll}+" // unicode letter
+		sepRE := "\\Q" + attrs.SeparatorChar + "\\E"
+		preCount := "{" + strconv.Itoa(attrs.Length-2) + "}"
+		leadRE := firstWRE + sepRE + "(?:" + wRE + sepRE + ")" + preCount
+		res := "^" + leadRE + wRE + "$"
+		re, err := regexp.Compile(res)
+		if err != nil {
+			t.Errorf("regexp %q did not compile: %v", res, err)
+		}
+		if !re.MatchString(p.String()) {
+			t.Errorf("%q doesn't match %s", p, re)
+		}
+	}
+
+}
+
 func TestWLRandCapitalDistribution(t *testing.T) {
 
 	if !doFallibleTests {
