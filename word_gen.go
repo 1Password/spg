@@ -92,44 +92,44 @@ func NewWordListPasswordGenerator(words WordList) (*WordListPasswordGenerator, e
 }
 
 // Generate a password using the wordlist generator. Requires that the generator already be set up
-func (g WordListPasswordGenerator) Generate(attrs WLAttrs) (Password, error) {
+func (a WLAttrs) Generate(g WordListPasswordGenerator) (Password, error) {
 	p := Password{}
 	if g.Size() == 0 {
 		return p, fmt.Errorf("wordlist generator must be set up before being used")
 	}
-	if attrs.Length < 1 {
-		return p, fmt.Errorf("don't ask for passwords of length %d", attrs.Length)
+	if a.Length < 1 {
+		return p, fmt.Errorf("don't ask for passwords of length %d", a.Length)
 	}
 
 	var sf SFFunction
-	if attrs.SeparatorFunc == nil {
-		sf = SFFunction(func() (string, float64) { return attrs.SeparatorChar, 0.0 })
+	if a.SeparatorFunc == nil {
+		sf = SFFunction(func() (string, float64) { return a.SeparatorChar, 0.0 })
 	} else {
-		sf = attrs.SeparatorFunc
+		sf = a.SeparatorFunc
 	}
 
 	// Construct a map of which words to capitalize
-	capWords := make(map[int]bool, attrs.Length)
-	switch attrs.Capitalize {
+	capWords := make(map[int]bool, a.Length)
+	switch a.Capitalize {
 	case CSFirst:
 		capWords[0] = true
 	case CSOne:
-		w := int(Int31n(uint32(attrs.Length)))
+		w := int(Int31n(uint32(a.Length)))
 		capWords[w] = true
 	case CSRandom:
-		for i := 1; i <= attrs.Length; i++ {
+		for i := 1; i <= a.Length; i++ {
 			if Int31n(2) == 1 {
 				capWords[i] = true
 			}
 		}
 	case CSAll:
-		for i := 1; i <= attrs.Length; i++ {
+		for i := 1; i <= a.Length; i++ {
 			capWords[i] = true
 		}
 	}
 
 	toks := []Token{}
-	for i := 0; i < attrs.Length; i++ {
+	for i := 0; i < a.Length; i++ {
 		w := g.words[Int31n(uint32(g.Size()))]
 
 		if capWords[i] {
@@ -138,7 +138,7 @@ func (g WordListPasswordGenerator) Generate(attrs WLAttrs) (Password, error) {
 		if len(w) > 0 {
 			toks = append(toks, Token{w, AtomTokenType})
 		}
-		if i < attrs.Length-1 {
+		if i < a.Length-1 {
 			sep, _ := sf()
 			if len(sep) > 0 {
 				toks = append(toks, Token{sep, SeparatorTokenType})
@@ -146,7 +146,7 @@ func (g WordListPasswordGenerator) Generate(attrs WLAttrs) (Password, error) {
 		}
 	}
 	p.Tokens = toks
-	p.ent = attrs.Entropy(int(g.Size()))
+	p.ent = a.Entropy(int(g.Size()))
 	return p, nil
 }
 

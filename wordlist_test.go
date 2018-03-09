@@ -70,13 +70,13 @@ func TestNewWordListPasswordGenerator(t *testing.T) {
 func TestWLGenerator(t *testing.T) {
 
 	// OK. Now for a simple wordlist test
-	wordG, err := NewWordListPasswordGenerator(abWords)
+	g, err := NewWordListPasswordGenerator(abWords)
 	if err != nil {
 		t.Errorf("Failed to create wordlist generator: %s", err)
 	}
-	wordAttr := NewWLAttrs(3)
-	wordAttr.SeparatorChar = " "
-	p, err := wordG.Generate(*wordAttr)
+	a := NewWLAttrs(3)
+	a.SeparatorChar = " "
+	p, err := a.Generate(*g)
 	pwd, ent := p.String(), p.Entropy()
 	if err != nil {
 		t.Errorf("failed to generate password: %s", err)
@@ -86,8 +86,8 @@ func TestWLGenerator(t *testing.T) {
 	// (Sorry for all of the little pieces. I had a small error when I
 	// did this all in one step)
 	wRE := "\\p{L}+" // unicode letter
-	sepRE := "\\Q" + wordAttr.SeparatorChar + "\\E"
-	preCount := "{" + strconv.Itoa(wordAttr.Length-1) + "}"
+	sepRE := "\\Q" + a.SeparatorChar + "\\E"
+	preCount := "{" + strconv.Itoa(a.Length-1) + "}"
 	leadRE := "(?:" + wRE + sepRE + ")" + preCount
 	res := "^" + leadRE + wRE + "$"
 	re, err := regexp.Compile(res)
@@ -102,8 +102,8 @@ func TestWLGenerator(t *testing.T) {
 
 	// As long as the test wordlist has at least 16384 the entropy for
 	// for a three word password should be at least 42
-	if wordG.Size() < 16384 {
-		t.Errorf("this test expects a word list of at least 2^14 items. Not %d", wordG.Size())
+	if g.Size() < 16384 {
+		t.Errorf("this test expects a word list of at least 2^14 items. Not %d", g.Size())
 	}
 	if ent < 42.0 {
 		t.Errorf("entropy (%.4f) of generated password is smaller than expected", ent)
@@ -115,7 +115,7 @@ func TestWLGenerator(t *testing.T) {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 
-	p, err = threeG.Generate(WLAttrs{Length: 100})
+	p, err = WLAttrs{Length: 100}.Generate(*threeG)
 	ent = p.Entropy()
 	const expectedEnt = float32(158.496250) // 100 * log2(3). Calculated with something other than go
 	if err != nil {
@@ -136,7 +136,7 @@ func TestWLCapitalization(t *testing.T) {
 	attrs := NewWLAttrs(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSRandom
-	p, err := threeG.Generate(*attrs)
+	p, err := attrs.Generate(*threeG)
 	ent := p.Entropy()
 	expectedEnt := float32(51.69925) // 20 * (log2(3) + 1)
 	if err != nil {
@@ -160,7 +160,7 @@ func TestWLFirstCap(t *testing.T) {
 	attrs.Capitalize = CSFirst
 
 	for i := 0; i < 20; i++ {
-		p, err := threeG.Generate(*attrs)
+		p, err := attrs.Generate(*threeG)
 		ent := p.Entropy()
 		expectedEnt := float32(7.92481) // 5 * (log2(3))
 		if err != nil {
@@ -219,7 +219,7 @@ func TestWLOneCap(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		p, err := threeG.Generate(*attrs)
+		p, err := attrs.Generate(*threeG)
 		ent := p.Entropy()
 		expectedEnt := float32(19.619086) // 5 * log2(11) + log2(5)
 		if err != nil {
@@ -261,7 +261,7 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 	attrs := NewWLAttrs(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSRandom
-	p, _ := threeG.Generate(*attrs)
+	p, _ := attrs.Generate(*threeG)
 	pw := p.String()
 	// We need to count the title case and non-title case words in the password
 	tCaseRE, err := regexp.Compile("\\b\\p{Lu}")
@@ -302,7 +302,7 @@ func TestNonLetterWL(t *testing.T) {
 	expectedEnt := trueEnt + float32(math.Log2(float64(length)))
 
 	for i := 0; i < 20; i++ {
-		p, err := g.Generate(*a)
+		p, err := a.Generate(*g)
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("generator failed: %v", err)
@@ -343,7 +343,7 @@ func TestSyllableDigit(t *testing.T) {
 	}
 
 	for i := 0; i < 20; i++ {
-		p, err := g.Generate(*attrs)
+		p, err := attrs.Generate(*g)
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("failed to generate syllable pw: %v", err)
@@ -371,7 +371,7 @@ func TestNonASCIISeparators(t *testing.T) {
 	expectedEnt := float32(math.Log2(float64(len(wl))) * float64(length))
 
 	for i := 0; i < 20; i++ {
-		p, err := g.Generate(*a)
+		p, err := a.Generate(*g)
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("generator failed: %v", err)
