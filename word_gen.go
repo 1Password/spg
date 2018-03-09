@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// WLAttrs are the generator settings for wordlist (syllable list) passwords
+// WLAttrs (Word List password Attributes) are the generator settings for wordlist (syllable list) passwords
 type WLAttrs struct {
 	Length        int        // Length of generated password in words
 	SeparatorChar string     // What character(s) should separate words
@@ -27,7 +27,7 @@ const (
 	CSOne    = "one"    // One randomly selected word will be capitalized
 )
 
-// NewWLAttrs sets up WLAttrs with defaults and Length length
+// NewWLAttrs sets up word list password attributes with defaults and Length length
 func NewWLAttrs(length int) *WLAttrs {
 	attrs := &WLAttrs{
 		Length:     length,
@@ -36,19 +36,18 @@ func NewWLAttrs(length int) *WLAttrs {
 	return attrs
 }
 
-// WordList contains the list of words WordListPasswordGenerator()
+// WordList contains the list of words WLGenerator()
 type WordList []string
 
-// WordListPasswordGenerator gets set up with a word list once, and the generate() method will be used
-// for actual generation.
+// WLGenerator gets set up with a word list once
 // Its members are private, as it shouldn't be tampered with once it is created
-type WordListPasswordGenerator struct {
+type WLGenerator struct {
 	words WordList // List of words
 }
 
 // Size returns the number of items in the generator's wordlist or the maxiumum uint32, whichever is smaller
 // (the restriction on size is because of the RNG we are using)
-func (g WordListPasswordGenerator) Size() uint32 {
+func (g WLGenerator) Size() uint32 {
 	size := len(g.words)
 
 	// Why all this casting? (yes, functions not casts.) Because gopherjs won't assign
@@ -59,8 +58,8 @@ func (g WordListPasswordGenerator) Size() uint32 {
 	return uint32(size)
 }
 
-// NewWordListPasswordGenerator does what is says on the tin. Pass it a slice of strings
-func NewWordListPasswordGenerator(words WordList) (*WordListPasswordGenerator, error) {
+// NewWLGenerator does what is says on the tin. Pass it a slice of strings
+func NewWLGenerator(words WordList) (*WLGenerator, error) {
 	if len(words) == 0 {
 		return nil, fmt.Errorf("cannot set up word list generator without words")
 	}
@@ -85,7 +84,7 @@ func NewWordListPasswordGenerator(words WordList) (*WordListPasswordGenerator, e
 		// wrong. So let's just do this
 		fmt.Printf("%d duplicate words found when setting up word list generator\n", len(words)-len(ourWords))
 	}
-	result := &WordListPasswordGenerator{
+	result := &WLGenerator{
 		words: ourWords,
 	}
 	return result, nil
@@ -94,7 +93,7 @@ func NewWordListPasswordGenerator(words WordList) (*WordListPasswordGenerator, e
 // Generate a password using the wordlist generator. Requires that the generator already be set up
 // Although we are passing a pointer to a generator, that is only to avoid some
 // memory copying. This does not change g.
-func (a WLAttrs) Generate(g *WordListPasswordGenerator) (Password, error) {
+func (a WLAttrs) Generate(g *WLGenerator) (Password, error) {
 	p := Password{}
 	if g.Size() == 0 {
 		return p, fmt.Errorf("wordlist generator must be set up before being used")

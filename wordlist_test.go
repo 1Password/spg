@@ -46,7 +46,7 @@ func init() {
 
 func TestNewWordListPasswordGenerator(t *testing.T) {
 	// First check that an empty lists returns an error
-	BadG, err := NewWordListPasswordGenerator([]string{})
+	BadG, err := NewWLGenerator([]string{})
 	if err == nil {
 		t.Error("Empty wordlist should produce an error")
 	}
@@ -54,7 +54,7 @@ func TestNewWordListPasswordGenerator(t *testing.T) {
 		t.Error("Empty wordlist should produce a nil generator")
 	}
 
-	threeG, err := NewWordListPasswordGenerator([]string{"one", "two", "three"})
+	threeG, err := NewWLGenerator([]string{"one", "two", "three"})
 	if err != nil {
 		t.Errorf("Error when creating simple wl generator: %s", err)
 	}
@@ -70,7 +70,7 @@ func TestNewWordListPasswordGenerator(t *testing.T) {
 func TestWLGenerator(t *testing.T) {
 
 	// OK. Now for a simple wordlist test
-	g, err := NewWordListPasswordGenerator(abWords)
+	g, err := NewWLGenerator(abWords)
 	if err != nil {
 		t.Errorf("Failed to create wordlist generator: %s", err)
 	}
@@ -110,7 +110,7 @@ func TestWLGenerator(t *testing.T) {
 	}
 
 	// Let's do some math on a fixed Generator
-	threeG, err := NewWordListPasswordGenerator([]string{"one", "two", "three"})
+	threeG, err := NewWLGenerator([]string{"one", "two", "three"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
@@ -127,7 +127,7 @@ func TestWLGenerator(t *testing.T) {
 }
 func TestWLCapitalization(t *testing.T) {
 
-	threeG, err := NewWordListPasswordGenerator([]string{"one", "two", "three"})
+	threeG, err := NewWLGenerator([]string{"one", "two", "three"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
@@ -149,7 +149,7 @@ func TestWLCapitalization(t *testing.T) {
 }
 
 func TestWLFirstCap(t *testing.T) {
-	threeG, err := NewWordListPasswordGenerator([]string{"one", "two", "three"})
+	threeG, err := NewWLGenerator([]string{"one", "two", "three"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
@@ -187,7 +187,7 @@ func TestWLFirstCap(t *testing.T) {
 }
 
 func TestWLOneCap(t *testing.T) {
-	threeG, err := NewWordListPasswordGenerator([]string{"once", "upon", "midnight", "dreary", "while", "pondered", "weak", "and", "weary", "over", "many"})
+	threeG, err := NewWLGenerator([]string{"once", "upon", "midnight", "dreary", "while", "pondered", "weak", "and", "weary", "over", "many"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
@@ -253,7 +253,7 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 		t.Skipf("Skipping statistically fallible test: %v", t.Name())
 	}
 
-	threeG, err := NewWordListPasswordGenerator([]string{"egy", "kettő", "három"})
+	threeG, err := NewWLGenerator([]string{"egy", "kettő", "három"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
@@ -288,7 +288,7 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 func TestNonLetterWL(t *testing.T) {
 	wl := []string{"正確", "馬", "電池", "釘書針"}
 	length := 5
-	g, err := NewWordListPasswordGenerator(wl)
+	g, err := NewWLGenerator(wl)
 	if err != nil {
 		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
 	}
@@ -319,8 +319,8 @@ func TestNonLetterWL(t *testing.T) {
 }
 
 func TestSyllableDigit(t *testing.T) {
-	// g, err := NewWordListPasswordGenerator(abSyllables)
-	g, err := NewWordListPasswordGenerator([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
+	// g, err := NewWLGenerator(abSyllables)
+	g, err := NewWLGenerator([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
 	if err != nil {
 		t.Errorf("Couldn't create syllable generator: %v", err)
 	}
@@ -361,7 +361,7 @@ func TestSyllableDigit(t *testing.T) {
 func TestNonASCIISeparators(t *testing.T) {
 	wl := []string{"uno", "dos", "tres"}
 	length := 5
-	g, err := NewWordListPasswordGenerator(wl)
+	g, err := NewWLGenerator(wl)
 	if err != nil {
 		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
 	}
