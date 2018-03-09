@@ -92,7 +92,9 @@ func NewWordListPasswordGenerator(words WordList) (*WordListPasswordGenerator, e
 }
 
 // Generate a password using the wordlist generator. Requires that the generator already be set up
-func (a WLAttrs) Generate(g WordListPasswordGenerator) (Password, error) {
+// Although we are passing a pointer to a generator, that is only to avoid some
+// memory copying. This does not change g.
+func (a WLAttrs) Generate(g *WordListPasswordGenerator) (Password, error) {
 	p := Password{}
 	if g.Size() == 0 {
 		return p, fmt.Errorf("wordlist generator must be set up before being used")
