@@ -37,7 +37,6 @@ func TestSimpleEntropy(t *testing.T) {
 // Now time for some character password tests
 
 func TestDigitGenerator(t *testing.T) {
-	g := new(CharacterPasswordGenerator)
 
 	type ExIncVec struct {
 		exc string
@@ -68,7 +67,7 @@ func TestDigitGenerator(t *testing.T) {
 		attrs.IncludeExtra = v.inc
 
 		for i := 1; i <= 20; i++ {
-			p, err := g.Generate(*attrs)
+			p, err := attrs.Generate()
 			pw, ent := p.String(), p.Entropy()
 			if err != nil {
 				t.Errorf("failed to generate password: %v", err)
@@ -84,7 +83,6 @@ func TestDigitGenerator(t *testing.T) {
 }
 
 func TestNonASCII(t *testing.T) {
-	g := new(CharacterPasswordGenerator)
 	length := 10
 	a := NewCharAttrs(length)
 	a.AllowDigit = false
@@ -94,7 +92,7 @@ func TestNonASCII(t *testing.T) {
 	expectedEnt := float32(math.Log2(7.0) * float64(length))
 
 	for i := 0; i < 20; i++ {
-		p, err := g.Generate(*a)
+		p, err := a.Generate()
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("Couldn't generate poopy password: %v", err)

@@ -17,34 +17,24 @@ const ( // character types
 
 /*** Character type passwords ***/
 
-// CharacterPasswordGenerator generates a password from random characters
-type CharacterPasswordGenerator struct {
-}
-
-// NewCharacterPasswordGenerator exists only as a parallel to NewWordListPasswordGenerator
-// It doesn't do anying other than return new(CharacterPasswordGenerator), nil
-func NewCharacterPasswordGenerator() (*CharacterPasswordGenerator, error) {
-	return new(CharacterPasswordGenerator), nil
-}
-
 // Generate a password using the character generator. The attributes contain
 // all of the details needed for generating the password
-func (g CharacterPasswordGenerator) Generate(attrs CharGenAttrs) (Password, error) {
+func (a CharGenAttrs) Generate() (Password, error) {
 
-	if attrs.Length < 1 {
-		return Password{}, fmt.Errorf("don't ask for passwords of length %d", attrs.Length)
+	if a.Length < 1 {
+		return Password{}, fmt.Errorf("don't ask for passwords of length %d", a.Length)
 	}
 
 	p := Password{}
-	chars := attrs.buildCharacterList()
+	chars := a.buildCharacterList()
 
-	toks := make([]Token, attrs.Length)
-	for i := 0; i < attrs.Length; i++ {
+	toks := make([]Token, a.Length)
+	for i := 0; i < a.Length; i++ {
 		c := chars[Int31n(uint32(len(chars)))]
 		toks[i] = Token{c, AtomTokenType}
 	}
 	p.Tokens = toks
-	p.ent = attrs.Entropy()
+	p.ent = a.Entropy()
 	return p, nil
 }
 
