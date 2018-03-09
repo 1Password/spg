@@ -29,7 +29,7 @@ func NewCharacterPasswordGenerator() (*CharacterPasswordGenerator, error) {
 
 // Generate a password using the character generator. The attributes contain
 // all of the details needed for generating the password
-func (g CharacterPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
+func (g CharacterPasswordGenerator) Generate(attrs CharGenAttrs) (Password, error) {
 
 	if attrs.Length < 1 {
 		return Password{}, fmt.Errorf("don't ask for passwords of length %d", attrs.Length)
@@ -44,7 +44,7 @@ func (g CharacterPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
 		toks[i] = Token{c, AtomTokenType}
 	}
 	p.Tokens = toks
-	p.ent = attrs.CEntropy()
+	p.ent = attrs.Entropy()
 	return p, nil
 }
 
@@ -94,14 +94,15 @@ func (a CharGenAttrs) buildCharacterList() []string {
 	return strings.Split(alphabet, "")
 }
 
-// CEntropy returns the entropy of a character password given the generator attributes
-func (a GenAttrs) CEntropy() float32 {
+// Entropy returns the entropy of a character password given the generator attributes
+func (a CharGenAttrs) Entropy() float32 {
 	size := len(a.buildCharacterList())
 	return float32(entropySimple(a.Length, size))
 }
 
 // CharGenAttrs are generator attributes relevent for character list generation
 type CharGenAttrs struct {
+	Length           int    // Length of generated password in characters
 	AllowUpper       bool   // Uppercase letters, [A-Z] may be included in password
 	AllowLower       bool   // Lowercase letters, [a-z] may be included in password
 	AllowLetter      bool   // If false, overrides Lower and Upper setting, does nothing if true
@@ -111,4 +112,36 @@ type CharGenAttrs struct {
 	AllowWhiteSpace  bool   // Allow space and tab in passwords (this is silly, don't set)
 	ExcludeExtra     string // Specific characters caller may want excluded
 	IncludeExtra     string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
+}
+
+// NewCharAttrs creates CharGenAttrs with reasonable defaults and Length length
+// more structure
+func NewCharAttrs(length int) *CharGenAttrs {
+	const (
+		defaultSep        = ""
+		defaultDigits     = true
+		defaultUpper      = true
+		defaultLower      = true
+		defaultSymbol     = true
+		defaultAmbiguous  = true // exclude ambiguous by default
+		defaultWhiteSpace = false
+		defaultExclude    = ""
+	)
+	// function literal cannot be a string
+
+	attrs := new(CharGenAttrs)
+	attrs.Length = length
+
+	attrs.ExcludeAmbiguous = defaultAmbiguous
+	attrs.ExcludeExtra = defaultExclude
+
+	attrs.AllowDigit = defaultDigits
+	attrs.AllowUpper = defaultUpper
+	attrs.AllowLower = defaultLower
+	attrs.AllowLetter = attrs.AllowUpper || attrs.AllowLower
+	attrs.AllowSymbol = defaultSymbol
+	attrs.AllowWhiteSpace = defaultWhiteSpace
+	attrs.IncludeExtra = ""
+
+	return attrs
 }

@@ -3,7 +3,6 @@ package spg
 import (
 	"math"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 )
@@ -57,7 +56,7 @@ func TestDigitGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("%q did not compile: %v", v.re, err)
 		}
-		attrs := NewGenAttrs(12)
+		attrs := NewCharAttrs(12)
 
 		// Starting with digits-only
 		attrs.ExcludeAmbiguous = false
@@ -84,50 +83,10 @@ func TestDigitGenerator(t *testing.T) {
 	}
 }
 
-func TestSyllableDigit(t *testing.T) {
-	// g, err := NewWordListPasswordGenerator(abSyllables)
-	g, err := NewWordListPasswordGenerator([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
-	if err != nil {
-		t.Errorf("Couldn't create syllable generator: %v", err)
-	}
-	attrs := NewGenAttrs(12)
-	attrs.SeparatorFunc = SFDigits1
-	attrs.Capitalize = CSOne
-
-	// With a wordlist of 7 members, I get an expected entropy for these
-	// attributes to be 48. int(12*log2(7) + log2(12) + 11*log2(10))
-	expEnt := float32(73.81443)
-
-	sylRE := "\\pL\\p{Ll}{1,3}" // A letter followed by 1-3 lowercase letters
-	sepRE := "\\d"
-	preCount := "{" + strconv.Itoa(attrs.Length-1) + "}"
-	leadRE := "(?:" + sylRE + sepRE + ")" + preCount
-	reStr := "^" + leadRE + sylRE + "$"
-	re, err := regexp.Compile(reStr)
-	if err != nil {
-		t.Errorf("regexp %q did not compile: %v", re, err)
-	}
-
-	for i := 0; i < 20; i++ {
-		p, err := g.Generate(*attrs)
-		pw, ent := p.String(), p.Entropy()
-		if err != nil {
-			t.Errorf("failed to generate syllable pw: %v", err)
-		}
-		// fmt.Println(pw)
-		if !re.MatchString(pw) {
-			t.Errorf("pwd %q didn't match regexp %q", pw, re)
-		}
-		if cmpFloat32(ent, expEnt, entCompTolerance) != 0 {
-			t.Errorf("expected entropy of %.6f. Got %.6f", expEnt, ent)
-		}
-	}
-}
-
 func TestNonASCII(t *testing.T) {
 	g := new(CharacterPasswordGenerator)
 	length := 10
-	a := NewGenAttrs(length)
+	a := NewCharAttrs(length)
 	a.AllowDigit = false
 	a.AllowLetter = false
 	a.AllowSymbol = false
@@ -150,64 +109,6 @@ func TestNonASCII(t *testing.T) {
 		}
 	}
 
-}
-
-func TestNonASCIISeparators(t *testing.T) {
-	wl := []string{"uno", "dos", "tres"}
-	length := 5
-	g, err := NewWordListPasswordGenerator(wl)
-	if err != nil {
-		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
-	}
-	a := NewGenAttrs(length)
-	a.SeparatorChar = "¡"
-
-	expectedEnt := float32(math.Log2(float64(len(wl))) * float64(length))
-
-	for i := 0; i < 20; i++ {
-		p, err := g.Generate(*a)
-		pw, ent := p.String(), p.Entropy()
-		if err != nil {
-			t.Errorf("generator failed: %v", err)
-		}
-		if cmpFloat32(expectedEnt, ent, entCompTolerance) != 0 {
-			t.Errorf("Expected entropy of %q is %.6f. Got %.6f", pw, expectedEnt, ent)
-		}
-		// fmt.Println(pw)
-	}
-}
-
-func TestNonLetterWL(t *testing.T) {
-	wl := []string{"正確", "馬", "電池", "釘書針"}
-	length := 5
-	g, err := NewWordListPasswordGenerator(wl)
-	if err != nil {
-		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
-	}
-	a := NewGenAttrs(length)
-	a.SeparatorChar = " "
-	a.Capitalize = CSOne
-
-	// Because none of the words in the wordlist capitalize, the
-	// a.Capitalize = CSOne setting makes no difference
-	trueEnt := float32(math.Log2(float64(len(wl))) * float64(length))
-	expectedEnt := trueEnt + float32(math.Log2(float64(length)))
-
-	for i := 0; i < 20; i++ {
-		p, err := g.Generate(*a)
-		pw, ent := p.String(), p.Entropy()
-		if err != nil {
-			t.Errorf("generator failed: %v", err)
-		}
-
-		// This test will fail if we use trueEnt instead of expected ent.
-		// This is a consequence uppercasing some words making no difference
-		if cmpFloat32(expectedEnt, ent, entCompTolerance) != 0 {
-			t.Errorf("Expected entropy of %q is %.6f. Got %.6f", pw, expectedEnt, ent)
-			t.Errorf("True entropy of %q is %.6f", pw, trueEnt)
-		}
-		// fmt.Println(pw)
-	}
 }
 
 // cmpFloat32 compares floats to 1 part in tolerance

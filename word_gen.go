@@ -6,9 +6,10 @@ import (
 	"strings"
 )
 
-// WordListAttrs are the generator attributes relevant for wordlist like things
-type WordListAttrs struct {
-	SeparatorChar string     // For wordlist like things
+// WLAttrs are the generator settings for wordlist (syllable list) passwords
+type WLAttrs struct {
+	Length        int        // Length of generated password in words
+	SeparatorChar string     // What character(s) should separate words
 	SeparatorFunc SFFunction // function to generate separators, If nil just use SeperatorChar
 	Capitalize    CapScheme  // Which words in generated password should be capitalized
 }
@@ -25,6 +26,15 @@ const (
 	CSRandom = "random" // Some words (roughly half) will be capitalized
 	CSOne    = "one"    // One randomly selected word will be capitalized
 )
+
+// NewWLAttrs sets up WLAttrs with defaults and Length length
+func NewWLAttrs(length int) *WLAttrs {
+	attrs := &WLAttrs{
+		Length:     length,
+		Capitalize: CSNone,
+	}
+	return attrs
+}
 
 // WordList contains the list of words WordListPasswordGenerator()
 type WordList []string
@@ -82,7 +92,7 @@ func NewWordListPasswordGenerator(words WordList) (*WordListPasswordGenerator, e
 }
 
 // Generate a password using the wordlist generator. Requires that the generator already be set up
-func (g WordListPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
+func (g WordListPasswordGenerator) Generate(attrs WLAttrs) (Password, error) {
 	p := Password{}
 	if g.Size() == 0 {
 		return p, fmt.Errorf("wordlist generator must be set up before being used")
@@ -136,27 +146,28 @@ func (g WordListPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
 		}
 	}
 	p.Tokens = toks
-	p.ent = attrs.calculateWLEntropy(attrs.Length, int(g.Size()))
+	p.ent = attrs.Entropy(int(g.Size()))
 	return p, nil
 }
 
+// Entropy needs to know the wordlist size to calculate entropy for some attributes
 // BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
-func (attrs WordListAttrs) calculateWLEntropy(pwLength, listSize int) float32 {
-	ent := entropySimple(pwLength, listSize)
-	switch attrs.Capitalize {
+func (a WLAttrs) Entropy(listSize int) float32 {
+	ent := entropySimple(a.Length, listSize)
+	switch a.Capitalize {
 	case CSRandom:
-		ent += float64(pwLength)
+		ent += float64(a.Length)
 	case CSOne:
-		ent += math.Log2(float64(pwLength))
+		ent += math.Log2(float64(a.Length))
 	default: // No change in entropy
 	}
 
 	// Entropy contribution of separators
 	sepEnt := 0.0
-	if attrs.SeparatorFunc != nil {
-		_, sepEnt = attrs.SeparatorFunc()
+	if a.SeparatorFunc != nil {
+		_, sepEnt = a.SeparatorFunc()
 	}
-	ent += (float64(pwLength) - 1.0) * sepEnt
+	ent += (float64(a.Length) - 1.0) * sepEnt
 
 	return float32(ent)
 }

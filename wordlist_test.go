@@ -3,6 +3,7 @@ package spg
 import (
 	"bufio"
 	"log"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
@@ -73,7 +74,7 @@ func TestWLGenerator(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to create wordlist generator: %s", err)
 	}
-	wordAttr := NewGenAttrs(3)
+	wordAttr := NewWLAttrs(3)
 	wordAttr.SeparatorChar = " "
 	p, err := wordG.Generate(*wordAttr)
 	pwd, ent := p.String(), p.Entropy()
@@ -114,7 +115,7 @@ func TestWLGenerator(t *testing.T) {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 
-	p, err = threeG.Generate(GenAttrs{Length: 100})
+	p, err = threeG.Generate(WLAttrs{Length: 100})
 	ent = p.Entropy()
 	const expectedEnt = float32(158.496250) // 100 * log2(3). Calculated with something other than go
 	if err != nil {
@@ -132,7 +133,7 @@ func TestWLCapitalization(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 20
-	attrs := NewGenAttrs(length)
+	attrs := NewWLAttrs(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSRandom
 	p, err := threeG.Generate(*attrs)
@@ -154,7 +155,7 @@ func TestWLFirstCap(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 5
-	attrs := NewGenAttrs(length)
+	attrs := NewWLAttrs(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSFirst
 
@@ -192,7 +193,7 @@ func TestWLOneCap(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 5
-	attrs := NewGenAttrs(length)
+	attrs := NewWLAttrs(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSOne
 
@@ -257,7 +258,7 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 	length := 1024 // big enough to make misses unlikely, round enough for me to do math easily
-	attrs := NewGenAttrs(length)
+	attrs := NewWLAttrs(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSRandom
 	p, _ := threeG.Generate(*attrs)
@@ -282,4 +283,102 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 		t.Errorf("far too few or too many lower case words (%d)", lCount)
 	}
 
+}
+
+func TestNonLetterWL(t *testing.T) {
+	wl := []string{"正確", "馬", "電池", "釘書針"}
+	length := 5
+	g, err := NewWordListPasswordGenerator(wl)
+	if err != nil {
+		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
+	}
+	a := NewWLAttrs(length)
+	a.SeparatorChar = " "
+	a.Capitalize = CSOne
+
+	// Because none of the words in the wordlist capitalize, the
+	// a.Capitalize = CSOne setting makes no difference
+	trueEnt := float32(math.Log2(float64(len(wl))) * float64(length))
+	expectedEnt := trueEnt + float32(math.Log2(float64(length)))
+
+	for i := 0; i < 20; i++ {
+		p, err := g.Generate(*a)
+		pw, ent := p.String(), p.Entropy()
+		if err != nil {
+			t.Errorf("generator failed: %v", err)
+		}
+
+		// This test will fail if we use trueEnt instead of expected ent.
+		// This is a consequence uppercasing some words making no difference
+		if cmpFloat32(expectedEnt, ent, entCompTolerance) != 0 {
+			t.Errorf("Expected entropy of %q is %.6f. Got %.6f", pw, expectedEnt, ent)
+			t.Errorf("True entropy of %q is %.6f", pw, trueEnt)
+		}
+		// fmt.Println(pw)
+	}
+}
+
+func TestSyllableDigit(t *testing.T) {
+	// g, err := NewWordListPasswordGenerator(abSyllables)
+	g, err := NewWordListPasswordGenerator([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
+	if err != nil {
+		t.Errorf("Couldn't create syllable generator: %v", err)
+	}
+	attrs := NewWLAttrs(12)
+	attrs.SeparatorFunc = SFDigits1
+	attrs.Capitalize = CSOne
+
+	// With a wordlist of 7 members, I get an expected entropy for these
+	// attributes to be 48. int(12*log2(7) + log2(12) + 11*log2(10))
+	expEnt := float32(73.81443)
+
+	sylRE := "\\pL\\p{Ll}{1,3}" // A letter followed by 1-3 lowercase letters
+	sepRE := "\\d"
+	preCount := "{" + strconv.Itoa(attrs.Length-1) + "}"
+	leadRE := "(?:" + sylRE + sepRE + ")" + preCount
+	reStr := "^" + leadRE + sylRE + "$"
+	re, err := regexp.Compile(reStr)
+	if err != nil {
+		t.Errorf("regexp %q did not compile: %v", re, err)
+	}
+
+	for i := 0; i < 20; i++ {
+		p, err := g.Generate(*attrs)
+		pw, ent := p.String(), p.Entropy()
+		if err != nil {
+			t.Errorf("failed to generate syllable pw: %v", err)
+		}
+		// fmt.Println(pw)
+		if !re.MatchString(pw) {
+			t.Errorf("pwd %q didn't match regexp %q", pw, re)
+		}
+		if cmpFloat32(ent, expEnt, entCompTolerance) != 0 {
+			t.Errorf("expected entropy of %.6f. Got %.6f", expEnt, ent)
+		}
+	}
+}
+
+func TestNonASCIISeparators(t *testing.T) {
+	wl := []string{"uno", "dos", "tres"}
+	length := 5
+	g, err := NewWordListPasswordGenerator(wl)
+	if err != nil {
+		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
+	}
+	a := NewWLAttrs(length)
+	a.SeparatorChar = "¡"
+
+	expectedEnt := float32(math.Log2(float64(len(wl))) * float64(length))
+
+	for i := 0; i < 20; i++ {
+		p, err := g.Generate(*a)
+		pw, ent := p.String(), p.Entropy()
+		if err != nil {
+			t.Errorf("generator failed: %v", err)
+		}
+		if cmpFloat32(expectedEnt, ent, entCompTolerance) != 0 {
+			t.Errorf("Expected entropy of %q is %.6f. Got %.6f", pw, expectedEnt, ent)
+		}
+		// fmt.Println(pw)
+	}
 }
