@@ -185,6 +185,67 @@ func TestWLFirstCap(t *testing.T) {
 
 }
 
+func TestWLOneCap(t *testing.T) {
+	threeG, err := NewWordListPasswordGenerator([]string{"once", "upon", "midnight", "dreary", "while", "pondered", "weak", "and", "weary", "over", "many"})
+	if err != nil {
+		t.Errorf("failed to create WL generator: %v", err)
+	}
+	// Test with random capitalization
+	length := 5
+	attrs := NewGenAttrs(length)
+	attrs.SeparatorChar = " "
+	attrs.Capitalize = CSOne
+
+	tcWRE := "\\p{Lu}\\pL+"
+	lcWRE := "\\p{Ll}\\pL+"
+	wRE := "(?:" + tcWRE + ")|(?:" + lcWRE + ")"
+	sepRE := "\\Q" + attrs.SeparatorChar + "\\E"
+	preCount := "{" + strconv.Itoa(attrs.Length-1) + "}"
+	leadRE := wRE + sepRE + "(?:" + wRE + sepRE + ")" + preCount
+	res := "^" + leadRE + wRE + "$"
+	re, err := regexp.Compile(res)
+
+	if err != nil {
+		t.Errorf("regexp %q did not compile: %v", res, err)
+	}
+	u, err := regexp.Compile("\\b\\p{Lu}")
+	if err != nil {
+		t.Errorf("regexp %q did not compile: %v", tcWRE, err)
+	}
+	l, err := regexp.Compile("\\b\\p{Ll}")
+	if err != nil {
+		t.Errorf("regexp %q did not compile: %v", lcWRE, err)
+	}
+
+	for i := 0; i < 10; i++ {
+		p, err := threeG.Generate(*attrs)
+		ent := p.Entropy()
+		expectedEnt := float32(19.619086) // 5 * log2(11) + log2(5)
+		if err != nil {
+			t.Errorf("failed to generate %d word password: %v", length, err)
+		}
+		if cmpFloat32(ent, expectedEnt, entCompTolerance) != 0 {
+			t.Errorf("expected entropy (%.6f) != returned entropy (%.6f)", expectedEnt, ent)
+		}
+
+		pw := p.String()
+
+		if !re.MatchString(pw) {
+			t.Errorf("%q doesn't match %s", pw, re)
+		}
+
+		lCount := len(l.FindAllString(pw, -1)) // This appears to be really slow
+		if lCount != attrs.Length-1 {
+			t.Errorf("%d lowercase words in %q. Expected %d", lCount, pw, attrs.Length-1)
+		}
+		uCount := len(u.FindAllString(pw, -1))
+		if uCount != 1 {
+			t.Errorf("%d uppercase words in %q. Expected 1", uCount, pw)
+		}
+	}
+
+}
+
 func TestWLRandCapitalDistribution(t *testing.T) {
 
 	if !doFallibleTests {
