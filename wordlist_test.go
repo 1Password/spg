@@ -70,13 +70,13 @@ func TestNewWordListPasswordGenerator(t *testing.T) {
 func TestWLGenerator(t *testing.T) {
 
 	// OK. Now for a simple wordlist test
-	g, err := NewWordList(abWords)
+	wl, err := NewWordList(abWords)
 	if err != nil {
 		t.Errorf("Failed to create wordlist generator: %s", err)
 	}
 	a := NewWLRecipe(3)
 	a.SeparatorChar = " "
-	p, err := a.Generate(g)
+	p, err := a.Generate(wl)
 	pwd, ent := p.String(), p.Entropy()
 	if err != nil {
 		t.Errorf("failed to generate password: %s", err)
@@ -102,8 +102,8 @@ func TestWLGenerator(t *testing.T) {
 
 	// As long as the test wordlist has at least 16384 the entropy for
 	// for a three word password should be at least 42
-	if g.Size() < 16384 {
-		t.Errorf("this test expects a word list of at least 2^14 items. Not %d", g.Size())
+	if wl.Size() < 16384 {
+		t.Errorf("this test expects a word list of at least 2^14 items. Not %d", wl.Size())
 	}
 	if ent < 42.0 {
 		t.Errorf("entropy (%.4f) of generated password is smaller than expected", ent)
@@ -133,10 +133,10 @@ func TestWLCapitalization(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 20
-	attrs := NewWLRecipe(length)
-	attrs.SeparatorChar = " "
-	attrs.Capitalize = CSRandom
-	p, err := attrs.Generate(threeG)
+	r := NewWLRecipe(length)
+	r.SeparatorChar = " "
+	r.Capitalize = CSRandom
+	p, err := r.Generate(threeG)
 	ent := p.Entropy()
 	expectedEnt := float32(51.69925) // 20 * (log2(3) + 1)
 	if err != nil {
@@ -155,12 +155,12 @@ func TestWLFirstCap(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 5
-	attrs := NewWLRecipe(length)
-	attrs.SeparatorChar = " "
-	attrs.Capitalize = CSFirst
+	r := NewWLRecipe(length)
+	r.SeparatorChar = " "
+	r.Capitalize = CSFirst
 
 	for i := 0; i < 20; i++ {
-		p, err := attrs.Generate(threeG)
+		p, err := r.Generate(threeG)
 		ent := p.Entropy()
 		expectedEnt := float32(7.92481) // 5 * (log2(3))
 		if err != nil {
@@ -171,8 +171,8 @@ func TestWLFirstCap(t *testing.T) {
 		}
 		firstWRE := "\\p{Lu}\\p{Ll}+"
 		wRE := "\\p{Ll}+" // unicode letter
-		sepRE := "\\Q" + attrs.SeparatorChar + "\\E"
-		preCount := "{" + strconv.Itoa(attrs.Length-2) + "}"
+		sepRE := "\\Q" + r.SeparatorChar + "\\E"
+		preCount := "{" + strconv.Itoa(r.Length-2) + "}"
 		leadRE := firstWRE + sepRE + "(?:" + wRE + sepRE + ")" + preCount
 		res := "^" + leadRE + wRE + "$"
 		re, err := regexp.Compile(res)
@@ -193,15 +193,15 @@ func TestWLOneCap(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 5
-	attrs := NewWLRecipe(length)
-	attrs.SeparatorChar = " "
-	attrs.Capitalize = CSOne
+	r := NewWLRecipe(length)
+	r.SeparatorChar = " "
+	r.Capitalize = CSOne
 
 	tcWRE := "\\p{Lu}\\pL+"
 	lcWRE := "\\p{Ll}\\pL+"
 	wRE := "(?:" + tcWRE + ")|(?:" + lcWRE + ")"
-	sepRE := "\\Q" + attrs.SeparatorChar + "\\E"
-	preCount := "{" + strconv.Itoa(attrs.Length-1) + "}"
+	sepRE := "\\Q" + r.SeparatorChar + "\\E"
+	preCount := "{" + strconv.Itoa(r.Length-1) + "}"
 	leadRE := wRE + sepRE + "(?:" + wRE + sepRE + ")" + preCount
 	res := "^" + leadRE + wRE + "$"
 	re, err := regexp.Compile(res)
@@ -219,7 +219,7 @@ func TestWLOneCap(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		p, err := attrs.Generate(threeG)
+		p, err := r.Generate(threeG)
 		ent := p.Entropy()
 		expectedEnt := float32(19.619086) // 5 * log2(11) + log2(5)
 		if err != nil {
@@ -236,8 +236,8 @@ func TestWLOneCap(t *testing.T) {
 		}
 
 		lCount := len(l.FindAllString(pw, -1)) // This appears to be really slow
-		if lCount != attrs.Length-1 {
-			t.Errorf("%d lowercase words in %q. Expected %d", lCount, pw, attrs.Length-1)
+		if lCount != r.Length-1 {
+			t.Errorf("%d lowercase words in %q. Expected %d", lCount, pw, r.Length-1)
 		}
 		uCount := len(u.FindAllString(pw, -1))
 		if uCount != 1 {
@@ -258,10 +258,10 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 	length := 1024 // big enough to make misses unlikely, round enough for me to do math easily
-	attrs := NewWLRecipe(length)
-	attrs.SeparatorChar = " "
-	attrs.Capitalize = CSRandom
-	p, _ := attrs.Generate(threeG)
+	r := NewWLRecipe(length)
+	r.SeparatorChar = " "
+	r.Capitalize = CSRandom
+	p, _ := r.Generate(threeG)
 	pw := p.String()
 	// We need to count the title case and non-title case words in the password
 	tCaseRE, err := regexp.Compile("\\b\\p{Lu}")
@@ -286,9 +286,9 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 }
 
 func TestNonLetterWL(t *testing.T) {
-	wl := []string{"正確", "馬", "電池", "釘書針"}
+	cl := []string{"正確", "馬", "電池", "釘書針"}
 	length := 5
-	g, err := NewWordList(wl)
+	wl, err := NewWordList(cl)
 	if err != nil {
 		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
 	}
@@ -298,11 +298,11 @@ func TestNonLetterWL(t *testing.T) {
 
 	// Because none of the words in the wordlist capitalize, the
 	// a.Capitalize = CSOne setting makes no difference
-	trueEnt := float32(math.Log2(float64(len(wl))) * float64(length))
+	trueEnt := float32(math.Log2(float64(len(cl))) * float64(length))
 	expectedEnt := trueEnt + float32(math.Log2(float64(length)))
 
 	for i := 0; i < 20; i++ {
-		p, err := a.Generate(g)
+		p, err := a.Generate(wl)
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("generator failed: %v", err)
@@ -319,14 +319,14 @@ func TestNonLetterWL(t *testing.T) {
 }
 
 func TestSyllableDigit(t *testing.T) {
-	// g, err := NewWordList(abSyllables)
-	g, err := NewWordList([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
+	// wl, err := NewWordList(abSyllables)
+	wl, err := NewWordList([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
 	if err != nil {
 		t.Errorf("Couldn't create syllable generator: %v", err)
 	}
-	attrs := NewWLRecipe(12)
-	attrs.SeparatorFunc = SFDigits1
-	attrs.Capitalize = CSOne
+	r := NewWLRecipe(12)
+	r.SeparatorFunc = SFDigits1
+	r.Capitalize = CSOne
 
 	// With a wordlist of 7 members, I get an expected entropy for these
 	// attributes to be 48. int(12*log2(7) + log2(12) + 11*log2(10))
@@ -334,7 +334,7 @@ func TestSyllableDigit(t *testing.T) {
 
 	sylRE := "\\pL\\p{Ll}{1,3}" // A letter followed by 1-3 lowercase letters
 	sepRE := "\\d"
-	preCount := "{" + strconv.Itoa(attrs.Length-1) + "}"
+	preCount := "{" + strconv.Itoa(r.Length-1) + "}"
 	leadRE := "(?:" + sylRE + sepRE + ")" + preCount
 	reStr := "^" + leadRE + sylRE + "$"
 	re, err := regexp.Compile(reStr)
@@ -343,7 +343,7 @@ func TestSyllableDigit(t *testing.T) {
 	}
 
 	for i := 0; i < 20; i++ {
-		p, err := attrs.Generate(g)
+		p, err := r.Generate(wl)
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("failed to generate syllable pw: %v", err)
@@ -359,19 +359,19 @@ func TestSyllableDigit(t *testing.T) {
 }
 
 func TestNonASCIISeparators(t *testing.T) {
-	wl := []string{"uno", "dos", "tres"}
+	sl := []string{"uno", "dos", "tres"}
 	length := 5
-	g, err := NewWordList(wl)
+	wl, err := NewWordList(sl)
 	if err != nil {
 		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
 	}
 	a := NewWLRecipe(length)
 	a.SeparatorChar = "¡"
 
-	expectedEnt := float32(math.Log2(float64(len(wl))) * float64(length))
+	expectedEnt := float32(math.Log2(float64(len(sl))) * float64(length))
 
 	for i := 0; i < 20; i++ {
-		p, err := a.Generate(g)
+		p, err := a.Generate(wl)
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("generator failed: %v", err)

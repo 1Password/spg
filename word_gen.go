@@ -43,8 +43,8 @@ type WordList struct {
 
 // Size returns the number of items in the generator's wordlist or the maxiumum uint32, whichever is smaller
 // (the restriction on size is because of the RNG we are using)
-func (g WordList) Size() uint32 {
-	size := len(g.words)
+func (wl WordList) Size() uint32 {
+	size := len(wl.words)
 
 	// Why all this casting? (yes, functions not casts.) Because gopherjs won't assign
 	// math.MaxUint32 to an int. It doesn't like untyped values an considers it overflow
@@ -89,44 +89,44 @@ func NewWordList(list []string) (*WordList, error) {
 // Generate a password using the wordlist generator. Requires that the generator already be set up
 // Although we are passing a pointer to a generator, that is only to avoid some
 // memory copying. This does not change g.
-func (a WLRecipe) Generate(g *WordList) (Password, error) {
+func (r WLRecipe) Generate(g *WordList) (Password, error) {
 	p := Password{}
 	if g.Size() == 0 {
 		return p, fmt.Errorf("wordlist generator must be set up before being used")
 	}
-	if a.Length < 1 {
-		return p, fmt.Errorf("don't ask for passwords of length %d", a.Length)
+	if r.Length < 1 {
+		return p, fmt.Errorf("don't ask for passwords of length %d", r.Length)
 	}
 
 	var sf SFFunction
-	if a.SeparatorFunc == nil {
-		sf = SFFunction(func() (string, float64) { return a.SeparatorChar, 0.0 })
+	if r.SeparatorFunc == nil {
+		sf = SFFunction(func() (string, float64) { return r.SeparatorChar, 0.0 })
 	} else {
-		sf = a.SeparatorFunc
+		sf = r.SeparatorFunc
 	}
 
 	// Construct a map of which words to capitalize
-	capWords := make(map[int]bool, a.Length)
-	switch a.Capitalize {
+	capWords := make(map[int]bool, r.Length)
+	switch r.Capitalize {
 	case CSFirst:
 		capWords[0] = true
 	case CSOne:
-		w := int(Int31n(uint32(a.Length)))
+		w := int(Int31n(uint32(r.Length)))
 		capWords[w] = true
 	case CSRandom:
-		for i := 1; i <= a.Length; i++ {
+		for i := 1; i <= r.Length; i++ {
 			if Int31n(2) == 1 {
 				capWords[i] = true
 			}
 		}
 	case CSAll:
-		for i := 1; i <= a.Length; i++ {
+		for i := 1; i <= r.Length; i++ {
 			capWords[i] = true
 		}
 	}
 
 	toks := []Token{}
-	for i := 0; i < a.Length; i++ {
+	for i := 0; i < r.Length; i++ {
 		w := g.words[Int31n(uint32(g.Size()))]
 
 		if capWords[i] {
@@ -135,7 +135,7 @@ func (a WLRecipe) Generate(g *WordList) (Password, error) {
 		if len(w) > 0 {
 			toks = append(toks, Token{w, AtomTokenType})
 		}
-		if i < a.Length-1 {
+		if i < r.Length-1 {
 			sep, _ := sf()
 			if len(sep) > 0 {
 				toks = append(toks, Token{sep, SeparatorTokenType})
@@ -143,28 +143,28 @@ func (a WLRecipe) Generate(g *WordList) (Password, error) {
 		}
 	}
 	p.Tokens = toks
-	p.ent = a.Entropy(int(g.Size()))
+	p.ent = r.Entropy(int(g.Size()))
 	return p, nil
 }
 
 // Entropy needs to know the wordlist size to calculate entropy for some attributes
 // BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
-func (a WLRecipe) Entropy(listSize int) float32 {
-	ent := entropySimple(a.Length, listSize)
-	switch a.Capitalize {
+func (r WLRecipe) Entropy(listSize int) float32 {
+	ent := entropySimple(r.Length, listSize)
+	switch r.Capitalize {
 	case CSRandom:
-		ent += float64(a.Length)
+		ent += float64(r.Length)
 	case CSOne:
-		ent += math.Log2(float64(a.Length))
+		ent += math.Log2(float64(r.Length))
 	default: // No change in entropy
 	}
 
 	// Entropy contribution of separators
 	sepEnt := 0.0
-	if a.SeparatorFunc != nil {
-		_, sepEnt = a.SeparatorFunc()
+	if r.SeparatorFunc != nil {
+		_, sepEnt = r.SeparatorFunc()
 	}
-	ent += (float64(a.Length) - 1.0) * sepEnt
+	ent += (float64(r.Length) - 1.0) * sepEnt
 
 	return float32(ent)
 }
