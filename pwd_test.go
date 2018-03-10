@@ -55,19 +55,19 @@ func TestDigitGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("%q did not compile: %v", v.re, err)
 		}
-		attrs := NewCharRecipe(12)
+		r := NewCharRecipe(12)
 
 		// Starting with digits-only
-		attrs.ExcludeAmbiguous = false
-		attrs.AllowDigit = true
-		attrs.AllowLetter = false
-		attrs.AllowSymbol = false
+		r.ExcludeAmbiguous = false
+		r.AllowDigit = true
+		r.AllowLetter = false
+		r.AllowSymbol = false
 
-		attrs.ExcludeExtra = v.exc
-		attrs.IncludeExtra = v.inc
+		r.ExcludeExtra = v.exc
+		r.IncludeExtra = v.inc
 
 		for i := 1; i <= 20; i++ {
-			p, err := attrs.Generate()
+			p, err := r.Generate()
 			pw, ent := p.String(), p.Entropy()
 			if err != nil {
 				t.Errorf("failed to generate password: %v", err)
@@ -84,15 +84,15 @@ func TestDigitGenerator(t *testing.T) {
 
 func TestNonASCII(t *testing.T) {
 	length := 10
-	a := NewCharRecipe(length)
-	a.AllowDigit = false
-	a.AllowLetter = false
-	a.AllowSymbol = false
-	a.IncludeExtra = "űβ™λ∞⊕💩"
+	r := NewCharRecipe(length)
+	r.AllowDigit = false
+	r.AllowLetter = false
+	r.AllowSymbol = false
+	r.IncludeExtra = "űβ™λ∞⊕💩"
 	expectedEnt := float32(math.Log2(7.0) * float64(length))
 
 	for i := 0; i < 20; i++ {
-		p, err := a.Generate()
+		p, err := r.Generate()
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("Couldn't generate poopy password: %v", err)

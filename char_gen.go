@@ -19,22 +19,22 @@ const ( // character types
 
 // Generate a password using the character generator. The attributes contain
 // all of the details needed for generating the password
-func (a CharRecipe) Generate() (Password, error) {
+func (r CharRecipe) Generate() (Password, error) {
 
-	if a.Length < 1 {
-		return Password{}, fmt.Errorf("don't ask for passwords of length %d", a.Length)
+	if r.Length < 1 {
+		return Password{}, fmt.Errorf("don't ask for passwords of length %d", r.Length)
 	}
 
 	p := Password{}
-	chars := a.buildCharacterList()
+	chars := r.buildCharacterList()
 
-	toks := make([]Token, a.Length)
-	for i := 0; i < a.Length; i++ {
+	toks := make([]Token, r.Length)
+	for i := 0; i < r.Length; i++ {
 		c := chars[Int31n(uint32(len(chars)))]
 		toks[i] = Token{c, AtomTokenType}
 	}
 	p.Tokens = toks
-	p.ent = a.Entropy()
+	p.ent = r.Entropy()
 	return p, nil
 }
 
@@ -42,11 +42,11 @@ func (a CharRecipe) Generate() (Password, error) {
 // characters (actually strings of length 1) that are all and only those
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
-func (a CharRecipe) buildCharacterList() []string {
+func (r CharRecipe) buildCharacterList() []string {
 	// No letters overrides any Upper or Lower case settings
-	if !a.AllowLetter {
-		a.AllowLower = false
-		a.AllowUpper = false
+	if !r.AllowLetter {
+		r.AllowLower = false
+		r.AllowUpper = false
 	}
 
 	/* We have three steps in creating the set of characters to use
@@ -58,25 +58,25 @@ func (a CharRecipe) buildCharacterList() []string {
 	*/
 
 	ab := ""
-	if a.AllowDigit {
+	if r.AllowDigit {
 		ab += CTDigits
 	}
-	if a.AllowLower {
+	if r.AllowLower {
 		ab += CTLower
 	}
-	if a.AllowUpper {
+	if r.AllowUpper {
 		ab += CTUpper
 	}
-	if a.AllowSymbol {
+	if r.AllowSymbol {
 		ab += CTSymbols
 	}
-	if a.AllowWhiteSpace {
+	if r.AllowWhiteSpace {
 		ab += CTWhiteSpace
 	}
-	ab += a.IncludeExtra
+	ab += r.IncludeExtra
 
-	exclude := a.ExcludeExtra
-	if a.ExcludeAmbiguous {
+	exclude := r.ExcludeExtra
+	if r.ExcludeAmbiguous {
 		exclude += CTAmbiguous
 	}
 
@@ -85,9 +85,9 @@ func (a CharRecipe) buildCharacterList() []string {
 }
 
 // Entropy returns the entropy of a character password given the generator attributes
-func (a CharRecipe) Entropy() float32 {
-	size := len(a.buildCharacterList())
-	return float32(entropySimple(a.Length, size))
+func (r CharRecipe) Entropy() float32 {
+	size := len(r.buildCharacterList())
+	return float32(entropySimple(r.Length, size))
 }
 
 // CharRecipe are generator attributes relevent for character list generation
