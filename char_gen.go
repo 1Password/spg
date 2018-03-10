@@ -118,7 +118,7 @@ type CharRecipe struct {
 	Length       int           // Length of generated password in characters
 	Uppers       CharInclusion // Uppercase letters, [A-Z] may be included in password
 	Lowers       CharInclusion // Lowercase letters, [a-z] may be included in password
-	Letter       CharInclusion // If false, overrides Lowers and Uppers setting, does nothing if true
+	Letter       CharInclusion // Deprecated: Use Lowers and Uppers explicitly
 	Digits       CharInclusion // Digits [0-9] may be included in password
 	Symbols      CharInclusion // Symbols, punctuation characters may be included in password
 	Ambiguous    CharInclusion // Ambiguous characters (such as "I" and "1") are to be excluded from password
