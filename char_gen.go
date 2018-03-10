@@ -44,11 +44,6 @@ func (r CharRecipe) Generate() (Password, error) {
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
 func (r CharRecipe) buildCharacterList() []string {
-	// No letters overrides any Uppers or Lowers case settings
-	if r.Letter != CIUnstated {
-		r.Lowers = r.Letter
-		r.Uppers = r.Letter
-	}
 
 	v := reflect.ValueOf(r)
 
@@ -96,7 +91,6 @@ type CharRecipe struct {
 	Length       int           // Length of generated password in characters
 	Uppers       CharInclusion // Uppercase letters, [A-Z] may be included in password
 	Lowers       CharInclusion // Lowercase letters, [a-z] may be included in password
-	Letter       CharInclusion // Deprecated: Use Lowers and Uppers explicitly
 	Digits       CharInclusion // Digits [0-9] may be included in password
 	Symbols      CharInclusion // Symbols, punctuation characters may be included in password
 	Ambiguous    CharInclusion // Ambiguous characters (such as "I" and "1") are to be excluded from password
