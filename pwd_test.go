@@ -58,10 +58,11 @@ func TestDigitGenerator(t *testing.T) {
 		r := NewCharRecipe(12)
 
 		// Starting with digits-only
-		r.ExcludeAmbiguous = false
-		r.AllowDigit = true
-		r.AllowLetter = false
-		r.AllowSymbol = false
+		r.Ambiguous = CIUnstated
+		r.Digits = CIInclude
+		r.Lowers = CIUnstated
+		r.Uppers = CIUnstated
+		r.Symbols = CIUnstated
 
 		r.ExcludeExtra = v.exc
 		r.IncludeExtra = v.inc
@@ -73,7 +74,7 @@ func TestDigitGenerator(t *testing.T) {
 				t.Errorf("failed to generate password: %v", err)
 			}
 			if cmpFloat32(ent, v.ent, entCompTolerance) != 0 {
-				t.Errorf("Expected entropy %.6f. Got %.6f instead", v.ent, ent)
+				t.Errorf("Expected entropy %.6f. Got %.6f instead for %q", v.ent, ent, pw)
 			}
 			if !re.MatchString(pw) {
 				t.Errorf("%q didn't match %v", pw, re)
@@ -85,9 +86,10 @@ func TestDigitGenerator(t *testing.T) {
 func TestNonASCII(t *testing.T) {
 	length := 10
 	r := NewCharRecipe(length)
-	r.AllowDigit = false
-	r.AllowLetter = false
-	r.AllowSymbol = false
+	r.Digits = CIUnstated
+	r.Uppers = CIUnstated
+	r.Lowers = CIUnstated
+	r.Symbols = CIUnstated
 	r.IncludeExtra = "űβ™λ∞⊕💩"
 	expectedEnt := float32(math.Log2(7.0) * float64(length))
 
@@ -103,7 +105,7 @@ func TestNonASCII(t *testing.T) {
 		}
 		// fmt.Println(pw)
 		if cmpFloat32(ent, expectedEnt, entCompTolerance) != 0 {
-			t.Errorf("expected entropy of %.6f. Got %.6f", expectedEnt, ent)
+			t.Errorf("expected entropy of %.6f. Got %.6f for %q", expectedEnt, ent, pw)
 		}
 	}
 

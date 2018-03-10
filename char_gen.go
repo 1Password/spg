@@ -43,10 +43,10 @@ func (r CharRecipe) Generate() (Password, error) {
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
 func (r CharRecipe) buildCharacterList() []string {
-	// No letters overrides any Upper or Lower case settings
-	if !r.AllowLetter {
-		r.AllowLower = false
-		r.AllowUpper = false
+	// No letters overrides any Uppers or Lowers case settings
+	if r.Letter != CIUnstated {
+		r.Lowers = r.Letter
+		r.Uppers = r.Letter
 	}
 
 	/* We have three steps in creating the set of characters to use
@@ -57,26 +57,37 @@ func (r CharRecipe) buildCharacterList() []string {
 	   Steps 2 and 3 are accomplished by the subtractString() function
 	*/
 
-	ab := ""
-	if r.AllowDigit {
+	ab := r.IncludeExtra
+	if r.Digits == CIInclude {
 		ab += CTDigits
 	}
-	if r.AllowLower {
+	if r.Lowers == CIInclude {
 		ab += CTLower
 	}
-	if r.AllowUpper {
+	if r.Uppers == CIInclude {
 		ab += CTUpper
 	}
-	if r.AllowSymbol {
+	if r.Symbols == CIInclude {
 		ab += CTSymbols
 	}
-	if r.AllowWhiteSpace {
-		ab += CTWhiteSpace
+	if r.Ambiguous == CIInclude {
+		ab += CTAmbiguous
 	}
-	ab += r.IncludeExtra
 
 	exclude := r.ExcludeExtra
-	if r.ExcludeAmbiguous {
+	if r.Digits == CIExclude {
+		exclude += CTDigits
+	}
+	if r.Lowers == CIExclude {
+		exclude += CTLower
+	}
+	if r.Uppers == CIExclude {
+		exclude += CTUpper
+	}
+	if r.Symbols == CIExclude {
+		exclude += CTSymbols
+	}
+	if r.Ambiguous == CIExclude {
 		exclude += CTAmbiguous
 	}
 
@@ -90,48 +101,44 @@ func (r CharRecipe) Entropy() float32 {
 	return float32(entropySimple(r.Length, size))
 }
 
+// CharInclusion holds the inclusion/exclusion value for some character class
+type CharInclusion string
+
+// CI{Included,Required,Excluded,Unstated} indicate how some class of characters (such as digts)
+// are to be included (or not) in the generated password
+const (
+	CIInclude  = CharInclusion("included") // Included in the set of characters used by generator
+	CIRequire  = CharInclusion("required") // At least one of these must be in each generated password
+	CIExclude  = CharInclusion("excluded") // None of these may appear in a generated password
+	CIUnstated = CharInclusion("")         // Not included by this statement, but not excluded either
+)
+
 // CharRecipe are generator attributes relevent for character list generation
 type CharRecipe struct {
-	Length           int    // Length of generated password in characters
-	AllowUpper       bool   // Uppercase letters, [A-Z] may be included in password
-	AllowLower       bool   // Lowercase letters, [a-z] may be included in password
-	AllowLetter      bool   // If false, overrides Lower and Upper setting, does nothing if true
-	AllowDigit       bool   // Digits [0-9] may be included in password
-	AllowSymbol      bool   // Symbols, punctuation characters may be included in password
-	ExcludeAmbiguous bool   // Ambiguous characters (such as "I" and "1") are to be excluded from password
-	AllowWhiteSpace  bool   // Allow space and tab in passwords (this is silly, don't set)
-	ExcludeExtra     string // Specific characters caller may want excluded
-	IncludeExtra     string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
+	Length       int           // Length of generated password in characters
+	Uppers       CharInclusion // Uppercase letters, [A-Z] may be included in password
+	Lowers       CharInclusion // Lowercase letters, [a-z] may be included in password
+	Letter       CharInclusion // If false, overrides Lowers and Uppers setting, does nothing if true
+	Digits       CharInclusion // Digits [0-9] may be included in password
+	Symbols      CharInclusion // Symbols, punctuation characters may be included in password
+	Ambiguous    CharInclusion // Ambiguous characters (such as "I" and "1") are to be excluded from password
+	ExcludeExtra string        // Specific characters caller may want excluded
+	IncludeExtra string        // Specific characters caller may want excluded (this is where to put emojis. Please don't)
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
 // more structure
 func NewCharRecipe(length int) *CharRecipe {
-	const (
-		defaultSep        = ""
-		defaultDigits     = true
-		defaultUpper      = true
-		defaultLower      = true
-		defaultSymbol     = true
-		defaultAmbiguous  = true // exclude ambiguous by default
-		defaultWhiteSpace = false
-		defaultExclude    = ""
-	)
-	// function literal cannot be a string
 
-	attrs := new(CharRecipe)
-	attrs.Length = length
+	r := new(CharRecipe)
+	r.Length = length
 
-	attrs.ExcludeAmbiguous = defaultAmbiguous
-	attrs.ExcludeExtra = defaultExclude
+	r.Ambiguous = CIExclude
 
-	attrs.AllowDigit = defaultDigits
-	attrs.AllowUpper = defaultUpper
-	attrs.AllowLower = defaultLower
-	attrs.AllowLetter = attrs.AllowUpper || attrs.AllowLower
-	attrs.AllowSymbol = defaultSymbol
-	attrs.AllowWhiteSpace = defaultWhiteSpace
-	attrs.IncludeExtra = ""
+	r.Digits = CIInclude
+	r.Uppers = CIInclude
+	r.Lowers = CIInclude
+	r.Symbols = CIInclude
 
-	return attrs
+	return r
 }
