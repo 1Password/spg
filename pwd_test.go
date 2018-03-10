@@ -59,7 +59,7 @@ func TestDigitGenerator(t *testing.T) {
 
 		// Starting with digits-only
 		r.Ambiguous = CIUnstated
-		r.Digits = CIInclude
+		r.Digits = CIRequire
 		r.Lowers = CIUnstated
 		r.Uppers = CIUnstated
 		r.Symbols = CIUnstated

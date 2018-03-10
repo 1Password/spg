@@ -2,6 +2,7 @@ package spg
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -49,48 +50,25 @@ func (r CharRecipe) buildCharacterList() []string {
 		r.Uppers = r.Letter
 	}
 
-	/* We have three steps in creating the set of characters to use
-	   1. Build it up from what is allowed
-	   2. Remove duplicate characters from the list
-	   3. Remove exclusions
-
-	   Steps 2 and 3 are accomplished by the subtractString() function
-	*/
+	v := reflect.ValueOf(r)
 
 	ab := r.IncludeExtra
-	if r.Digits == CIInclude {
-		ab += CTDigits
-	}
-	if r.Lowers == CIInclude {
-		ab += CTLower
-	}
-	if r.Uppers == CIInclude {
-		ab += CTUpper
-	}
-	if r.Symbols == CIInclude {
-		ab += CTSymbols
-	}
-	if r.Ambiguous == CIInclude {
-		ab += CTAmbiguous
-	}
-
 	exclude := r.ExcludeExtra
-	if r.Digits == CIExclude {
-		exclude += CTDigits
+	for fname, s := range fieldNamesAlphabets {
+		f := v.FieldByName(fname)
+		switch f.Interface() {
+		case CIRequire:
+			fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIInclude)
+			fallthrough
+		case CIInclude:
+			ab += s
+		case CIExclude:
+			exclude += s
+		case CIUnstated: // nothing to do
+		default:
+			fmt.Printf("%q not known. Will treat %q as %q\n", f.Interface(), fname, CIUnstated)
+		}
 	}
-	if r.Lowers == CIExclude {
-		exclude += CTLower
-	}
-	if r.Uppers == CIExclude {
-		exclude += CTUpper
-	}
-	if r.Symbols == CIExclude {
-		exclude += CTSymbols
-	}
-	if r.Ambiguous == CIExclude {
-		exclude += CTAmbiguous
-	}
-
 	alphabet := subtractString(ab, exclude)
 	return strings.Split(alphabet, "")
 }
@@ -124,6 +102,15 @@ type CharRecipe struct {
 	Ambiguous    CharInclusion // Ambiguous characters (such as "I" and "1") are to be excluded from password
 	ExcludeExtra string        // Specific characters caller may want excluded
 	IncludeExtra string        // Specific characters caller may want excluded (this is where to put emojis. Please don't)
+}
+
+// We need a way to map certain field names to the alphabets they correspond to
+var fieldNamesAlphabets = map[string]string{
+	"Uppers":    CTUpper,
+	"Lowers":    CTLower,
+	"Digits":    CTDigits,
+	"Symbols":   CTSymbols,
+	"Ambiguous": CTAmbiguous,
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
