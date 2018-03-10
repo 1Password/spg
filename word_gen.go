@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// WLAttrs (Word List password Attributes) are the generator settings for wordlist (syllable list) passwords
-type WLAttrs struct {
+// WLRecipe (Word List password Attributes) are the generator settings for wordlist (syllable list) passwords
+type WLRecipe struct {
 	Length        int        // Length of generated password in words
 	SeparatorChar string     // What character(s) should separate words
 	SeparatorFunc SFFunction // function to generate separators, If nil just use SeperatorChar
@@ -27,9 +27,9 @@ const (
 	CSOne    = "one"    // One randomly selected word will be capitalized
 )
 
-// NewWLAttrs sets up word list password attributes with defaults and Length length
-func NewWLAttrs(length int) *WLAttrs {
-	attrs := &WLAttrs{
+// NewWLRecipe sets up word list password attributes with defaults and Length length
+func NewWLRecipe(length int) *WLRecipe {
+	attrs := &WLRecipe{
 		Length:     length,
 		Capitalize: CSNone,
 	}
@@ -37,17 +37,13 @@ func NewWLAttrs(length int) *WLAttrs {
 }
 
 // WordList contains the list of words WLGenerator()
-type WordList []string
-
-// WLGenerator gets set up with a word list once
-// Its members are private, as it shouldn't be tampered with once it is created
-type WLGenerator struct {
-	words WordList // List of words
+type WordList struct {
+	words []string
 }
 
 // Size returns the number of items in the generator's wordlist or the maxiumum uint32, whichever is smaller
 // (the restriction on size is because of the RNG we are using)
-func (g WLGenerator) Size() uint32 {
+func (g WordList) Size() uint32 {
 	size := len(g.words)
 
 	// Why all this casting? (yes, functions not casts.) Because gopherjs won't assign
@@ -58,33 +54,33 @@ func (g WLGenerator) Size() uint32 {
 	return uint32(size)
 }
 
-// NewWLGenerator does what is says on the tin. Pass it a slice of strings
-func NewWLGenerator(words WordList) (*WLGenerator, error) {
-	if len(words) == 0 {
+// NewWordList does what is says on the tin. Pass it a slice of strings
+func NewWordList(list []string) (*WordList, error) {
+	if len(list) == 0 {
 		return nil, fmt.Errorf("cannot set up word list generator without words")
 	}
 
 	// Our RNG for picking from a list returns a uint32, so that places an upper limit on size of list
-	if uint64(len(words)) > uint64(math.MaxUint32) {
+	if uint64(len(list)) > uint64(math.MaxUint32) {
 		return nil, fmt.Errorf("we can't handle more than %d words", uint32(0xFFFFFFFF))
 	}
 
 	// We want to ensure that no item appears more than once
-	unique := make(map[string]bool, len(words))
+	unique := make(map[string]bool, len(list))
 	var ourWords []string // Don't create with make. We need this to start with zero length
-	for _, word := range words {
+	for _, word := range list {
 		if !unique[word] {
 			ourWords = append(ourWords, word)
 			unique[word] = true
 		}
 	}
-	if len(words) > len(ourWords) {
+	if len(list) > len(ourWords) {
 		// We just need to log a warning here. Not sure how we are handling that.
 		// I could create a brain with standard logger and use that, but that seems
 		// wrong. So let's just do this
-		fmt.Printf("%d duplicate words found when setting up word list generator\n", len(words)-len(ourWords))
+		fmt.Printf("%d duplicate words found when setting up word list generator\n", len(list)-len(ourWords))
 	}
-	result := &WLGenerator{
+	result := &WordList{
 		words: ourWords,
 	}
 	return result, nil
@@ -93,7 +89,7 @@ func NewWLGenerator(words WordList) (*WLGenerator, error) {
 // Generate a password using the wordlist generator. Requires that the generator already be set up
 // Although we are passing a pointer to a generator, that is only to avoid some
 // memory copying. This does not change g.
-func (a WLAttrs) Generate(g *WLGenerator) (Password, error) {
+func (a WLRecipe) Generate(g *WordList) (Password, error) {
 	p := Password{}
 	if g.Size() == 0 {
 		return p, fmt.Errorf("wordlist generator must be set up before being used")
@@ -153,7 +149,7 @@ func (a WLAttrs) Generate(g *WLGenerator) (Password, error) {
 
 // Entropy needs to know the wordlist size to calculate entropy for some attributes
 // BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
-func (a WLAttrs) Entropy(listSize int) float32 {
+func (a WLRecipe) Entropy(listSize int) float32 {
 	ent := entropySimple(a.Length, listSize)
 	switch a.Capitalize {
 	case CSRandom:

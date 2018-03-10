@@ -46,7 +46,7 @@ func init() {
 
 func TestNewWordListPasswordGenerator(t *testing.T) {
 	// First check that an empty lists returns an error
-	BadG, err := NewWLGenerator([]string{})
+	BadG, err := NewWordList([]string{})
 	if err == nil {
 		t.Error("Empty wordlist should produce an error")
 	}
@@ -54,7 +54,7 @@ func TestNewWordListPasswordGenerator(t *testing.T) {
 		t.Error("Empty wordlist should produce a nil generator")
 	}
 
-	threeG, err := NewWLGenerator([]string{"one", "two", "three"})
+	threeG, err := NewWordList([]string{"one", "two", "three"})
 	if err != nil {
 		t.Errorf("Error when creating simple wl generator: %s", err)
 	}
@@ -70,11 +70,11 @@ func TestNewWordListPasswordGenerator(t *testing.T) {
 func TestWLGenerator(t *testing.T) {
 
 	// OK. Now for a simple wordlist test
-	g, err := NewWLGenerator(abWords)
+	g, err := NewWordList(abWords)
 	if err != nil {
 		t.Errorf("Failed to create wordlist generator: %s", err)
 	}
-	a := NewWLAttrs(3)
+	a := NewWLRecipe(3)
 	a.SeparatorChar = " "
 	p, err := a.Generate(g)
 	pwd, ent := p.String(), p.Entropy()
@@ -110,12 +110,12 @@ func TestWLGenerator(t *testing.T) {
 	}
 
 	// Let's do some math on a fixed Generator
-	threeG, err := NewWLGenerator([]string{"one", "two", "three"})
+	threeG, err := NewWordList([]string{"one", "two", "three"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 
-	p, err = WLAttrs{Length: 100}.Generate(threeG)
+	p, err = WLRecipe{Length: 100}.Generate(threeG)
 	ent = p.Entropy()
 	const expectedEnt = float32(158.496250) // 100 * log2(3). Calculated with something other than go
 	if err != nil {
@@ -127,13 +127,13 @@ func TestWLGenerator(t *testing.T) {
 }
 func TestWLCapitalization(t *testing.T) {
 
-	threeG, err := NewWLGenerator([]string{"one", "two", "three"})
+	threeG, err := NewWordList([]string{"one", "two", "three"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 	// Test with random capitalization
 	length := 20
-	attrs := NewWLAttrs(length)
+	attrs := NewWLRecipe(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSRandom
 	p, err := attrs.Generate(threeG)
@@ -149,13 +149,13 @@ func TestWLCapitalization(t *testing.T) {
 }
 
 func TestWLFirstCap(t *testing.T) {
-	threeG, err := NewWLGenerator([]string{"one", "two", "three"})
+	threeG, err := NewWordList([]string{"one", "two", "three"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 	// Test with random capitalization
 	length := 5
-	attrs := NewWLAttrs(length)
+	attrs := NewWLRecipe(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSFirst
 
@@ -187,13 +187,13 @@ func TestWLFirstCap(t *testing.T) {
 }
 
 func TestWLOneCap(t *testing.T) {
-	threeG, err := NewWLGenerator([]string{"once", "upon", "midnight", "dreary", "while", "pondered", "weak", "and", "weary", "over", "many"})
+	threeG, err := NewWordList([]string{"once", "upon", "midnight", "dreary", "while", "pondered", "weak", "and", "weary", "over", "many"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 	// Test with random capitalization
 	length := 5
-	attrs := NewWLAttrs(length)
+	attrs := NewWLRecipe(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSOne
 
@@ -253,12 +253,12 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 		t.Skipf("Skipping statistically fallible test: %v", t.Name())
 	}
 
-	threeG, err := NewWLGenerator([]string{"egy", "kettő", "három"})
+	threeG, err := NewWordList([]string{"egy", "kettő", "három"})
 	if err != nil {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 	length := 1024 // big enough to make misses unlikely, round enough for me to do math easily
-	attrs := NewWLAttrs(length)
+	attrs := NewWLRecipe(length)
 	attrs.SeparatorChar = " "
 	attrs.Capitalize = CSRandom
 	p, _ := attrs.Generate(threeG)
@@ -288,11 +288,11 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 func TestNonLetterWL(t *testing.T) {
 	wl := []string{"正確", "馬", "電池", "釘書針"}
 	length := 5
-	g, err := NewWLGenerator(wl)
+	g, err := NewWordList(wl)
 	if err != nil {
 		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
 	}
-	a := NewWLAttrs(length)
+	a := NewWLRecipe(length)
 	a.SeparatorChar = " "
 	a.Capitalize = CSOne
 
@@ -319,12 +319,12 @@ func TestNonLetterWL(t *testing.T) {
 }
 
 func TestSyllableDigit(t *testing.T) {
-	// g, err := NewWLGenerator(abSyllables)
-	g, err := NewWLGenerator([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
+	// g, err := NewWordList(abSyllables)
+	g, err := NewWordList([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
 	if err != nil {
 		t.Errorf("Couldn't create syllable generator: %v", err)
 	}
-	attrs := NewWLAttrs(12)
+	attrs := NewWLRecipe(12)
 	attrs.SeparatorFunc = SFDigits1
 	attrs.Capitalize = CSOne
 
@@ -361,11 +361,11 @@ func TestSyllableDigit(t *testing.T) {
 func TestNonASCIISeparators(t *testing.T) {
 	wl := []string{"uno", "dos", "tres"}
 	length := 5
-	g, err := NewWLGenerator(wl)
+	g, err := NewWordList(wl)
 	if err != nil {
 		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
 	}
-	a := NewWLAttrs(length)
+	a := NewWLRecipe(length)
 	a.SeparatorChar = "¡"
 
 	expectedEnt := float32(math.Log2(float64(len(wl))) * float64(length))
