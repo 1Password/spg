@@ -143,14 +143,17 @@ func (r WLRecipe) Generate(wl *WordList) (Password, error) {
 		}
 	}
 	p.Tokens = toks
-	p.ent = r.Entropy(int(wl.Size()))
+	p.ent = r.Entropy(wl)
 	return p, nil
 }
 
 // Entropy needs to know the wordlist size to calculate entropy for some attributes
 // BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
-func (r WLRecipe) Entropy(listSize int) float32 {
-	ent := entropySimple(r.Length, listSize)
+// Fixing that bug will require having some more information about the WordList available
+// which is why we are passing the list instead of just its size.
+func (r WLRecipe) Entropy(wl *WordList) float32 {
+	size := int(wl.Size())
+	ent := entropySimple(r.Length, size)
 	switch r.Capitalize {
 	case CSRandom:
 		ent += float64(r.Length)
