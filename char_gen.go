@@ -19,7 +19,7 @@ const ( // character types
 
 // Generate a password using the character generator. The attributes contain
 // all of the details needed for generating the password
-func (a CharGenAttrs) Generate() (Password, error) {
+func (a CharRecipe) Generate() (Password, error) {
 
 	if a.Length < 1 {
 		return Password{}, fmt.Errorf("don't ask for passwords of length %d", a.Length)
@@ -42,7 +42,7 @@ func (a CharGenAttrs) Generate() (Password, error) {
 // characters (actually strings of length 1) that are all and only those
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
-func (a CharGenAttrs) buildCharacterList() []string {
+func (a CharRecipe) buildCharacterList() []string {
 	// No letters overrides any Upper or Lower case settings
 	if !a.AllowLetter {
 		a.AllowLower = false
@@ -85,13 +85,13 @@ func (a CharGenAttrs) buildCharacterList() []string {
 }
 
 // Entropy returns the entropy of a character password given the generator attributes
-func (a CharGenAttrs) Entropy() float32 {
+func (a CharRecipe) Entropy() float32 {
 	size := len(a.buildCharacterList())
 	return float32(entropySimple(a.Length, size))
 }
 
-// CharGenAttrs are generator attributes relevent for character list generation
-type CharGenAttrs struct {
+// CharRecipe are generator attributes relevent for character list generation
+type CharRecipe struct {
 	Length           int    // Length of generated password in characters
 	AllowUpper       bool   // Uppercase letters, [A-Z] may be included in password
 	AllowLower       bool   // Lowercase letters, [a-z] may be included in password
@@ -104,9 +104,9 @@ type CharGenAttrs struct {
 	IncludeExtra     string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
 }
 
-// NewCharAttrs creates CharGenAttrs with reasonable defaults and Length length
+// NewCharRecipe creates CharRecipe with reasonable defaults and Length length
 // more structure
-func NewCharAttrs(length int) *CharGenAttrs {
+func NewCharRecipe(length int) *CharRecipe {
 	const (
 		defaultSep        = ""
 		defaultDigits     = true
@@ -119,7 +119,7 @@ func NewCharAttrs(length int) *CharGenAttrs {
 	)
 	// function literal cannot be a string
 
-	attrs := new(CharGenAttrs)
+	attrs := new(CharRecipe)
 	attrs.Length = length
 
 	attrs.ExcludeAmbiguous = defaultAmbiguous

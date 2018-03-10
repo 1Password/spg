@@ -55,7 +55,7 @@ func TestDigitGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("%q did not compile: %v", v.re, err)
 		}
-		attrs := NewCharAttrs(12)
+		attrs := NewCharRecipe(12)
 
 		// Starting with digits-only
 		attrs.ExcludeAmbiguous = false
@@ -84,7 +84,7 @@ func TestDigitGenerator(t *testing.T) {
 
 func TestNonASCII(t *testing.T) {
 	length := 10
-	a := NewCharAttrs(length)
+	a := NewCharRecipe(length)
 	a.AllowDigit = false
 	a.AllowLetter = false
 	a.AllowSymbol = false
