@@ -53,7 +53,7 @@ func (r CharRecipe) buildCharacterList() []string {
 		f := v.FieldByName(fname)
 		switch f.Interface() {
 		case CIRequire:
-			fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIInclude)
+			// fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIInclude)
 			fallthrough
 		case CIInclude:
 			ab += s
@@ -99,6 +99,8 @@ type CharRecipe struct {
 }
 
 // We need a way to map certain field names to the alphabets they correspond to
+// I got worried about keeping this in sync with CharRecipe, so there's a test
+// for that.
 var fieldNamesAlphabets = map[string]string{
 	"Uppers":    CTUpper,
 	"Lowers":    CTLower,

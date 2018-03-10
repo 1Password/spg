@@ -2,6 +2,7 @@ package spg
 
 import (
 	"math"
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -109,6 +110,41 @@ func TestNonASCII(t *testing.T) {
 		}
 	}
 
+}
+
+func TestCIFieldNames(t *testing.T) {
+	a := NewCharRecipe(10)
+	fromR := make(map[string]bool)
+
+	// It finds all of the fields of CharInclusion, and builds a map with the
+	// names fo those fields.
+	// This is adapted from [crap, I'd need to copy the URL from a different computer]
+	v := reflect.ValueOf(a).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Field(i)
+		n := v.Type().Field(i).Name
+		t := f.Type().String()
+		if strings.HasSuffix(t, "CharInclusion") {
+			// fmt.Printf("Name: %s\tType: %s\n", n, t)
+			fromR[n] = true
+		}
+	}
+
+	if len(fromR) > len(fieldNamesAlphabets) {
+		t.Errorf("CharRecipe has more (%d) CharInclusion fields than listed in fieldNamesAlphabets (%d)",
+			len(fromR), len(fieldNamesAlphabets))
+	}
+
+	if len(fromR) < len(fieldNamesAlphabets) {
+		t.Errorf("CharRecipe has fewer (%d) CharInclusion fields than listed in fieldNamesAlphabets (%d)",
+			len(fromR), len(fieldNamesAlphabets))
+	}
+	
+	for name := range fieldNamesAlphabets {
+		if !fromR[name] {
+			t.Errorf("%q does not exist in CharRecipe", name)
+		}
+	}
 }
 
 // cmpFloat32 compares floats to 1 part in tolerance
