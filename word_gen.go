@@ -89,13 +89,13 @@ func NewWordList(list []string) (*WordList, error) {
 // Generate a password using the wordlist generator. Requires that the generator already be set up
 // Although we are passing a pointer to a generator, that is only to avoid some
 // memory copying. This does not change g.
-func (r WLRecipe) Generate(wl *WordList) (Password, error) {
-	p := Password{}
+func (r WLRecipe) Generate(wl *WordList) (*Password, error) {
+	p := &Password{}
 	if wl.Size() == 0 {
-		return p, fmt.Errorf("wordlist generator must be set up before being used")
+		return nil, fmt.Errorf("wordlist generator must be set up before being used")
 	}
 	if r.Length < 1 {
-		return p, fmt.Errorf("don't ask for passwords of length %d", r.Length)
+		return nil, fmt.Errorf("don't ask for passwords of length %d", r.Length)
 	}
 
 	var sf SFFunction

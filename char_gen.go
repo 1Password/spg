@@ -20,13 +20,13 @@ const ( // character types
 
 // Generate a password using the character generator. The attributes contain
 // all of the details needed for generating the password
-func (r CharRecipe) Generate() (Password, error) {
+func (r CharRecipe) Generate() (*Password, error) {
 
 	if r.Length < 1 {
-		return Password{}, fmt.Errorf("don't ask for passwords of length %d", r.Length)
+		return nil, fmt.Errorf("don't ask for passwords of length %d", r.Length)
 	}
 
-	p := Password{}
+	p := &Password{}
 	chars := r.buildCharacterList()
 
 	toks := make([]Token, r.Length)
