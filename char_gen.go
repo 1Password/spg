@@ -53,9 +53,9 @@ func (r CharRecipe) buildCharacterList() []string {
 		f := v.FieldByName(fname)
 		switch f.Interface() {
 		case CIRequire:
-			// fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIInclude)
+			// fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIAllow)
 			fallthrough
-		case CIInclude:
+		case CIAllow:
 			ab += s
 		case CIExclude:
 			exclude += s
@@ -80,7 +80,7 @@ type CharInclusion string
 // CI{Included,Required,Excluded,Unstated} indicate how some class of characters (such as digts)
 // are to be included (or not) in the generated password
 const (
-	CIInclude  = CharInclusion("included") // Included in the set of characters used by generator
+	CIAllow  = CharInclusion("included") // Included in the set of characters used by generator
 	CIRequire  = CharInclusion("required") // At least one of these must be in each generated password
 	CIExclude  = CharInclusion("excluded") // None of these may appear in a generated password
 	CIUnstated = CharInclusion("")         // Not included by this statement, but not excluded either
@@ -118,10 +118,10 @@ func NewCharRecipe(length int) *CharRecipe {
 
 	r.Ambiguous = CIExclude
 
-	r.Digits = CIInclude
-	r.Uppers = CIInclude
-	r.Lowers = CIInclude
-	r.Symbols = CIInclude
+	r.Digits = CIAllow
+	r.Uppers = CIAllow
+	r.Lowers = CIAllow
+	r.Symbols = CIAllow
 
 	return r
 }
