@@ -8,7 +8,7 @@ passwords it returns follow a uniform distribution.
 The clients of this package are expected to manage what is presented to users.
 This engine offers far greater flexibility than should normally be exposed to users.
 
-Wordlist (and pronounceable)
+Wordlist and pronounceable
 
 The word list generator produces things like "correct horse battery staple", but
 when the list is of pronounceable syllables, it can also be set up to produce things
@@ -33,7 +33,7 @@ Character-based are your typical notion of generated password,
 however these can be specified in ways to produce only numeric PINs if desired.
 The passwords generated are a function of the CharRecipe.
 
-The Generate() and Entropy()
+The Generate and Entropy methods
 
 Both word list recipes and and character recipies (WLRecipe, CharRecipe) support
 their own Generate and Entropy methods.
@@ -50,15 +50,16 @@ The Generate methods return a Password. There is a fair amount of internal struc
 to a Password object, but the ones you are most after is available through
 the Password.String() and Entropy() methods.
 
-A word about "Entropy"
+A word about Entropy
 
 Entropy is a highly misleading concept when applied to passwords. In the general case it
 is either an incoherent concept or the wrong concept to use when talking about the strength
 of a password.
 It does, however, make sense when a password is drawn uniformly from a space of possible passwords.
-This package does ensure that passwords are generated uniformly given the requirements
-passed to the generator. Indeed, the Entropy is a function solely of those requirements
-and paramater.
+This package does ensure that passwords are generated uniformly given the recipe
+passed to the generator.
+Indeed, the Entropy is a function solely of the recipe and some properties
+of any wordlist given.
 */
 package spg
 

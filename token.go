@@ -16,13 +16,26 @@ const (
 	AtomTokenType
 )
 
-// Token is a unit within a generated password.
+/*
+Token is a unit within a generated password.
+In "correct horse battery" there are five tokens
+    []Token{
+		{Value: "correct", Type: AtomTokenType},
+		{Value: " ", Type: SeparatorTokenType},
+		{Value: "horse", Type: AtomTokenType},
+		{Value: " ", Type: SeparatorTokenType},
+		{Value: "battery", Type: AtomTokenType},
+	}
+*/
 type Token struct {
 	Value string
 	Type  TokenType
 }
 
-// TIndexKind is the kind of tokenization index
+// TIndexKind is the kind of tokenization index.
+// Token indices are compact byte arrays that can be
+// used in conjunction to with a password string to reconstruct
+// an array of Tokens
 type TIndexKind uint8
 
 // Possible values for first byte of the compact token index index.
