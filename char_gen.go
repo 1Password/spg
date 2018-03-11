@@ -51,7 +51,7 @@ func (r CharRecipe) buildCharacterList() []string {
 	exclude := r.ExcludeExtra
 	for fname, s := range fieldNamesAlphabets {
 		f := v.FieldByName(fname)
-		switch f.Interface() {
+		switch f.Interface().(CharInclusion) {
 		case CIRequire:
 			// fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIAllow)
 			fallthrough
@@ -75,15 +75,15 @@ func (r CharRecipe) Entropy() float32 {
 }
 
 // CharInclusion holds the inclusion/exclusion value for some character class
-type CharInclusion string
+type CharInclusion int
 
 // CI{Included,Required,Excluded,Unstated} indicate how some class of characters (such as digts)
 // are to be included (or not) in the generated password
 const (
-	CIAllow  = CharInclusion("included") // Included in the set of characters used by generator
-	CIRequire  = CharInclusion("required") // At least one of these must be in each generated password
-	CIExclude  = CharInclusion("excluded") // None of these may appear in a generated password
-	CIUnstated = CharInclusion("")         // Not included by this statement, but not excluded either
+	CIUnstated = iota // Not included by this statement, but not excluded either
+	CIAllow           // Allowed in the generated password
+	CIRequire         // At least one of these must be in each generated password
+	CIExclude         // None of these may appear in a generated password
 )
 
 // CharRecipe are generator attributes relevent for character list generation
