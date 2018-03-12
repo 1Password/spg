@@ -8,11 +8,11 @@ import (
 
 // WLRecipe (Word List password Attributes) are the generator settings for wordlist (syllable list) passwords
 type WLRecipe struct {
+	*WordList                // Set of words for generating passwords
 	Length        int        // Length of generated password in words
 	SeparatorChar string     // What character(s) should separate words
 	SeparatorFunc SFFunction // function to generate separators, If nil just use SeperatorChar
 	Capitalize    CapScheme  // Which words in generated password should be capitalized
-	WordList      *WordList  // Words
 }
 
 // CapScheme is for an enumeration of capitalization schemes
@@ -95,9 +95,8 @@ func NewWordList(list []string) (*WordList, error) {
 // memory copying. This does not change g.
 func (r WLRecipe) Generate() (*Password, error) {
 	p := &Password{}
-	wl := r.WordList
 
-	if wl.Size() == 0 {
+	if r.Size() == 0 {
 		return nil, fmt.Errorf("wordlist generator must be set up before being used")
 	}
 	if r.Length < 1 {
@@ -133,7 +132,7 @@ func (r WLRecipe) Generate() (*Password, error) {
 
 	toks := []Token{}
 	for i := 0; i < r.Length; i++ {
-		w := wl.words[Int31n(uint32(wl.Size()))]
+		w := r.words[Int31n(uint32(r.Size()))]
 
 		if capWords[i] {
 			w = strings.Title(w)
@@ -155,9 +154,8 @@ func (r WLRecipe) Generate() (*Password, error) {
 
 // Entropy needs to know the wordlist size to calculate entropy for some attributes
 // BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
-// Fixing that bug will require having some more information about the WordList available.
 func (r WLRecipe) Entropy() float32 {
-	size := int(r.WordList.Size())
+	size := int(r.Size())
 	ent := entropySimple(r.Length, size)
 	switch r.Capitalize {
 	case CSRandom:
