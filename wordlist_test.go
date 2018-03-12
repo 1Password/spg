@@ -74,9 +74,9 @@ func TestWLGenerator(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to create wordlist generator: %s", err)
 	}
-	a := NewWLRecipe(3)
+	a := NewWLRecipe(3, wl)
 	a.SeparatorChar = " "
-	p, err := a.Generate(wl)
+	p, err := a.Generate()
 	pwd, ent := p.String(), p.Entropy()
 	if err != nil {
 		t.Errorf("failed to generate password: %s", err)
@@ -115,7 +115,7 @@ func TestWLGenerator(t *testing.T) {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 
-	p, err = WLRecipe{Length: 100}.Generate(threeG)
+	p, err = WLRecipe{Length: 100, WordList: threeG}.Generate()
 	ent = p.Entropy()
 	const expectedEnt = float32(158.496250) // 100 * log2(3). Calculated with something other than go
 	if err != nil {
@@ -133,10 +133,10 @@ func TestWLCapitalization(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 20
-	r := NewWLRecipe(length)
+	r := NewWLRecipe(length, threeG)
 	r.SeparatorChar = " "
 	r.Capitalize = CSRandom
-	p, err := r.Generate(threeG)
+	p, err := r.Generate()
 	ent := p.Entropy()
 	expectedEnt := float32(51.69925) // 20 * (log2(3) + 1)
 	if err != nil {
@@ -155,12 +155,12 @@ func TestWLFirstCap(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 5
-	r := NewWLRecipe(length)
+	r := NewWLRecipe(length, threeG)
 	r.SeparatorChar = " "
 	r.Capitalize = CSFirst
 
 	for i := 0; i < 20; i++ {
-		p, err := r.Generate(threeG)
+		p, err := r.Generate()
 		ent := p.Entropy()
 		expectedEnt := float32(7.92481) // 5 * (log2(3))
 		if err != nil {
@@ -193,7 +193,7 @@ func TestWLOneCap(t *testing.T) {
 	}
 	// Test with random capitalization
 	length := 5
-	r := NewWLRecipe(length)
+	r := NewWLRecipe(length, threeG)
 	r.SeparatorChar = " "
 	r.Capitalize = CSOne
 
@@ -219,7 +219,7 @@ func TestWLOneCap(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		p, err := r.Generate(threeG)
+		p, err := r.Generate()
 		ent := p.Entropy()
 		expectedEnt := float32(19.619086) // 5 * log2(11) + log2(5)
 		if err != nil {
@@ -258,10 +258,10 @@ func TestWLRandCapitalDistribution(t *testing.T) {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 	length := 1024 // big enough to make misses unlikely, round enough for me to do math easily
-	r := NewWLRecipe(length)
+	r := NewWLRecipe(length, threeG)
 	r.SeparatorChar = " "
 	r.Capitalize = CSRandom
-	p, _ := r.Generate(threeG)
+	p, _ := r.Generate()
 	pw := p.String()
 	// We need to count the title case and non-title case words in the password
 	tCaseRE, err := regexp.Compile("\\b\\p{Lu}")
@@ -292,7 +292,7 @@ func TestNonLetterWL(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
 	}
-	a := NewWLRecipe(length)
+	a := NewWLRecipe(length, wl)
 	a.SeparatorChar = " "
 	a.Capitalize = CSOne
 
@@ -302,7 +302,7 @@ func TestNonLetterWL(t *testing.T) {
 	expectedEnt := trueEnt + float32(math.Log2(float64(length)))
 
 	for i := 0; i < 20; i++ {
-		p, err := a.Generate(wl)
+		p, err := a.Generate()
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("generator failed: %v", err)
@@ -324,7 +324,7 @@ func TestSyllableDigit(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't create syllable generator: %v", err)
 	}
-	r := NewWLRecipe(12)
+	r := NewWLRecipe(12, wl)
 	r.SeparatorFunc = SFDigits1
 	r.Capitalize = CSOne
 
@@ -343,7 +343,7 @@ func TestSyllableDigit(t *testing.T) {
 	}
 
 	for i := 0; i < 20; i++ {
-		p, err := r.Generate(wl)
+		p, err := r.Generate()
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("failed to generate syllable pw: %v", err)
@@ -365,13 +365,13 @@ func TestNonASCIISeparators(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
 	}
-	a := NewWLRecipe(length)
+	a := NewWLRecipe(length, wl)
 	a.SeparatorChar = "¡"
 
 	expectedEnt := float32(math.Log2(float64(len(sl))) * float64(length))
 
 	for i := 0; i < 20; i++ {
-		p, err := a.Generate(wl)
+		p, err := a.Generate()
 		pw, ent := p.String(), p.Entropy()
 		if err != nil {
 			t.Errorf("generator failed: %v", err)

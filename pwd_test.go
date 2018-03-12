@@ -139,7 +139,7 @@ func TestCIFieldNames(t *testing.T) {
 		t.Errorf("CharRecipe has fewer (%d) CharInclusion fields than listed in fieldNamesAlphabets (%d)",
 			len(fromR), len(fieldNamesAlphabets))
 	}
-	
+
 	for name := range fieldNamesAlphabets {
 		if !fromR[name] {
 			t.Errorf("%q does not exist in CharRecipe", name)

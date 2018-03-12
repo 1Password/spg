@@ -12,6 +12,7 @@ type WLRecipe struct {
 	SeparatorChar string     // What character(s) should separate words
 	SeparatorFunc SFFunction // function to generate separators, If nil just use SeperatorChar
 	Capitalize    CapScheme  // Which words in generated password should be capitalized
+	WordList      *WordList  // Words
 }
 
 // CapScheme is for an enumeration of capitalization schemes
@@ -28,10 +29,11 @@ const (
 )
 
 // NewWLRecipe sets up word list password attributes with defaults and Length length
-func NewWLRecipe(length int) *WLRecipe {
+func NewWLRecipe(length int, wl *WordList) *WLRecipe {
 	attrs := &WLRecipe{
 		Length:     length,
 		Capitalize: CSNone,
+		WordList:   wl,
 	}
 	return attrs
 }
@@ -91,8 +93,10 @@ func NewWordList(list []string) (*WordList, error) {
 // Generate a password using the wordlist generator. Requires that the generator already be set up
 // Although we are passing a pointer to a generator, that is only to avoid some
 // memory copying. This does not change g.
-func (r WLRecipe) Generate(wl *WordList) (*Password, error) {
+func (r WLRecipe) Generate() (*Password, error) {
 	p := &Password{}
+	wl := r.WordList
+
 	if wl.Size() == 0 {
 		return nil, fmt.Errorf("wordlist generator must be set up before being used")
 	}
@@ -145,16 +149,15 @@ func (r WLRecipe) Generate(wl *WordList) (*Password, error) {
 		}
 	}
 	p.Tokens = toks
-	p.ent = r.Entropy(wl)
+	p.ent = r.Entropy()
 	return p, nil
 }
 
 // Entropy needs to know the wordlist size to calculate entropy for some attributes
 // BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
-// Fixing that bug will require having some more information about the WordList available
-// which is why we are passing the list instead of just its size.
-func (r WLRecipe) Entropy(wl *WordList) float32 {
-	size := int(wl.Size())
+// Fixing that bug will require having some more information about the WordList available.
+func (r WLRecipe) Entropy() float32 {
+	size := int(r.WordList.Size())
 	ent := entropySimple(r.Length, size)
 	switch r.Capitalize {
 	case CSRandom:
