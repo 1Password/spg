@@ -2,6 +2,7 @@ package spg
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -17,34 +18,24 @@ const ( // character types
 
 /*** Character type passwords ***/
 
-// CharacterPasswordGenerator generates a password from random characters
-type CharacterPasswordGenerator struct {
-}
-
-// NewCharacterPasswordGenerator exists only as a parallel to NewWordListPasswordGenerator
-// It doesn't do anying other than return new(CharacterPasswordGenerator), nil
-func NewCharacterPasswordGenerator() (*CharacterPasswordGenerator, error) {
-	return new(CharacterPasswordGenerator), nil
-}
-
 // Generate a password using the character generator. The attributes contain
 // all of the details needed for generating the password
-func (g CharacterPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
+func (r CharRecipe) Generate() (*Password, error) {
 
-	if attrs.Length < 1 {
-		return Password{}, fmt.Errorf("don't ask for passwords of length %d", attrs.Length)
+	if r.Length < 1 {
+		return nil, fmt.Errorf("don't ask for passwords of length %d", r.Length)
 	}
 
-	p := Password{}
-	chars := attrs.buildCharacterList()
+	p := &Password{}
+	chars := r.buildCharacterList()
 
-	toks := make([]Token, attrs.Length)
-	for i := 0; i < attrs.Length; i++ {
+	toks := make([]Token, r.Length)
+	for i := 0; i < r.Length; i++ {
 		c := chars[Int31n(uint32(len(chars)))]
 		toks[i] = Token{c, AtomTokenType}
 	}
 	p.Tokens = toks
-	p.ent = attrs.CEntropy()
+	p.ent = r.Entropy()
 	return p, nil
 }
 
@@ -52,63 +43,85 @@ func (g CharacterPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
 // characters (actually strings of length 1) that are all and only those
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
-func (a CharGenAttrs) buildCharacterList() []string {
-	// No letters overrides any Upper or Lower case settings
-	if !a.AllowLetter {
-		a.AllowLower = false
-		a.AllowUpper = false
-	}
+func (r CharRecipe) buildCharacterList() []string {
 
-	/* We have three steps in creating the set of characters to use
-	   1. Build it up from what is allowed
-	   2. Remove duplicate characters from the list
-	   3. Remove exclusions
+	v := reflect.ValueOf(r)
 
-	   Steps 2 and 3 are accomplished by the subtractString() function
-	*/
-
-	ab := ""
-	if a.AllowDigit {
-		ab += CTDigits
+	ab := r.IncludeExtra
+	exclude := r.ExcludeExtra
+	for fname, s := range fieldNamesAlphabets {
+		f := v.FieldByName(fname)
+		switch f.Interface().(CharInclusion) {
+		case CIRequire:
+			// fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIAllow)
+			fallthrough
+		case CIAllow:
+			ab += s
+		case CIExclude:
+			exclude += s
+		case CIUnstated: // nothing to do
+		default:
+			fmt.Printf("%q not known. Will treat %q as %q\n", f.Interface(), fname, CIUnstated)
+		}
 	}
-	if a.AllowLower {
-		ab += CTLower
-	}
-	if a.AllowUpper {
-		ab += CTUpper
-	}
-	if a.AllowSymbol {
-		ab += CTSymbols
-	}
-	if a.AllowWhiteSpace {
-		ab += CTWhiteSpace
-	}
-	ab += a.IncludeExtra
-
-	exclude := a.ExcludeExtra
-	if a.ExcludeAmbiguous {
-		exclude += CTAmbiguous
-	}
-
 	alphabet := subtractString(ab, exclude)
 	return strings.Split(alphabet, "")
 }
 
-// CEntropy returns the entropy of a character password given the generator attributes
-func (a GenAttrs) CEntropy() float32 {
-	size := len(a.buildCharacterList())
-	return float32(entropySimple(a.Length, size))
+// Entropy returns the entropy of a character password given the generator attributes
+func (r CharRecipe) Entropy() float32 {
+	size := len(r.buildCharacterList())
+	return float32(entropySimple(r.Length, size))
 }
 
-// CharGenAttrs are generator attributes relevent for character list generation
-type CharGenAttrs struct {
-	AllowUpper       bool   // Uppercase letters, [A-Z] may be included in password
-	AllowLower       bool   // Lowercase letters, [a-z] may be included in password
-	AllowLetter      bool   // If false, overrides Lower and Upper setting, does nothing if true
-	AllowDigit       bool   // Digits [0-9] may be included in password
-	AllowSymbol      bool   // Symbols, punctuation characters may be included in password
-	ExcludeAmbiguous bool   // Ambiguous characters (such as "I" and "1") are to be excluded from password
-	AllowWhiteSpace  bool   // Allow space and tab in passwords (this is silly, don't set)
-	ExcludeExtra     string // Specific characters caller may want excluded
-	IncludeExtra     string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
+// CharInclusion holds the inclusion/exclusion value for some character class
+type CharInclusion int
+
+// CI{Included,Required,Excluded,Unstated} indicate how some class of characters (such as digts)
+// are to be included (or not) in the generated password
+const (
+	CIUnstated = iota // Not included by this statement, but not excluded either
+	CIAllow           // Allowed in the generated password
+	CIRequire         // At least one of these must be in each generated password
+	CIExclude         // None of these may appear in a generated password
+)
+
+// CharRecipe are generator attributes relevent for character list generation
+type CharRecipe struct {
+	Length       int           // Length of generated password in characters
+	Uppers       CharInclusion // Uppercase letters, [A-Z] may be included in password
+	Lowers       CharInclusion // Lowercase letters, [a-z] may be included in password
+	Digits       CharInclusion // Digits [0-9] may be included in password
+	Symbols      CharInclusion // Symbols, punctuation characters may be included in password
+	Ambiguous    CharInclusion // Ambiguous characters (such as "I" and "1") are to be excluded from password
+	ExcludeExtra string        // Specific characters caller may want excluded
+	IncludeExtra string        // Specific characters caller may want excluded (this is where to put emojis. Please don't)
+}
+
+// We need a way to map certain field names to the alphabets they correspond to
+// I got worried about keeping this in sync with CharRecipe, so there's a test
+// for that.
+var fieldNamesAlphabets = map[string]string{
+	"Uppers":    CTUpper,
+	"Lowers":    CTLower,
+	"Digits":    CTDigits,
+	"Symbols":   CTSymbols,
+	"Ambiguous": CTAmbiguous,
+}
+
+// NewCharRecipe creates CharRecipe with reasonable defaults and Length length
+// more structure
+func NewCharRecipe(length int) *CharRecipe {
+
+	r := new(CharRecipe)
+	r.Length = length
+
+	r.Ambiguous = CIExclude
+
+	r.Digits = CIAllow
+	r.Uppers = CIAllow
+	r.Lowers = CIAllow
+	r.Symbols = CIAllow
+
+	return r
 }

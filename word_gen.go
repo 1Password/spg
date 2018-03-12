@@ -6,9 +6,10 @@ import (
 	"strings"
 )
 
-// WordListAttrs are the generator attributes relevant for wordlist like things
-type WordListAttrs struct {
-	SeparatorChar string     // For wordlist like things
+// WLRecipe (Word List password Attributes) are the generator settings for wordlist (syllable list) passwords
+type WLRecipe struct {
+	Length        int        // Length of generated password in words
+	SeparatorChar string     // What character(s) should separate words
 	SeparatorFunc SFFunction // function to generate separators, If nil just use SeperatorChar
 	Capitalize    CapScheme  // Which words in generated password should be capitalized
 }
@@ -26,20 +27,24 @@ const (
 	CSOne    = "one"    // One randomly selected word will be capitalized
 )
 
-// WordList contains the list of words WordListPasswordGenerator()
-type WordList []string
+// NewWLRecipe sets up word list password attributes with defaults and Length length
+func NewWLRecipe(length int) *WLRecipe {
+	attrs := &WLRecipe{
+		Length:     length,
+		Capitalize: CSNone,
+	}
+	return attrs
+}
 
-// WordListPasswordGenerator gets set up with a word list once, and the generate() method will be used
-// for actual generation.
-// Its members are private, as it shouldn't be tampered with once it is created
-type WordListPasswordGenerator struct {
-	words WordList // List of words
+// WordList contains the list of words WLGenerator()
+type WordList struct {
+	words []string
 }
 
 // Size returns the number of items in the generator's wordlist or the maxiumum uint32, whichever is smaller
 // (the restriction on size is because of the RNG we are using)
-func (g WordListPasswordGenerator) Size() uint32 {
-	size := len(g.words)
+func (wl WordList) Size() uint32 {
+	size := len(wl.words)
 
 	// Why all this casting? (yes, functions not casts.) Because gopherjs won't assign
 	// math.MaxUint32 to an int. It doesn't like untyped values an considers it overflow
@@ -49,78 +54,82 @@ func (g WordListPasswordGenerator) Size() uint32 {
 	return uint32(size)
 }
 
-// NewWordListPasswordGenerator does what is says on the tin. Pass it a slice of strings
-func NewWordListPasswordGenerator(words WordList) (*WordListPasswordGenerator, error) {
-	if len(words) == 0 {
+// NewWordList does what it says on the tin. Pass it a slice of strings
+// It will remove duplicates from the slice provided, and eventually
+// will count up how many words on the list can be changed through capitalization
+func NewWordList(list []string) (*WordList, error) {
+	if len(list) == 0 {
 		return nil, fmt.Errorf("cannot set up word list generator without words")
 	}
 
 	// Our RNG for picking from a list returns a uint32, so that places an upper limit on size of list
-	if uint64(len(words)) > uint64(math.MaxUint32) {
+	if uint64(len(list)) > uint64(math.MaxUint32) {
 		return nil, fmt.Errorf("we can't handle more than %d words", uint32(0xFFFFFFFF))
 	}
 
 	// We want to ensure that no item appears more than once
-	unique := make(map[string]bool, len(words))
+	unique := make(map[string]bool, len(list))
 	var ourWords []string // Don't create with make. We need this to start with zero length
-	for _, word := range words {
+	for _, word := range list {
 		if !unique[word] {
 			ourWords = append(ourWords, word)
 			unique[word] = true
 		}
 	}
-	if len(words) > len(ourWords) {
+	if len(list) > len(ourWords) {
 		// We just need to log a warning here. Not sure how we are handling that.
 		// I could create a brain with standard logger and use that, but that seems
 		// wrong. So let's just do this
-		fmt.Printf("%d duplicate words found when setting up word list generator\n", len(words)-len(ourWords))
+		fmt.Printf("%d duplicate words found when setting up word list generator\n", len(list)-len(ourWords))
 	}
-	result := &WordListPasswordGenerator{
+	result := &WordList{
 		words: ourWords,
 	}
 	return result, nil
 }
 
 // Generate a password using the wordlist generator. Requires that the generator already be set up
-func (g WordListPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
-	p := Password{}
-	if g.Size() == 0 {
-		return p, fmt.Errorf("wordlist generator must be set up before being used")
+// Although we are passing a pointer to a generator, that is only to avoid some
+// memory copying. This does not change g.
+func (r WLRecipe) Generate(wl *WordList) (*Password, error) {
+	p := &Password{}
+	if wl.Size() == 0 {
+		return nil, fmt.Errorf("wordlist generator must be set up before being used")
 	}
-	if attrs.Length < 1 {
-		return p, fmt.Errorf("don't ask for passwords of length %d", attrs.Length)
+	if r.Length < 1 {
+		return nil, fmt.Errorf("don't ask for passwords of length %d", r.Length)
 	}
 
 	var sf SFFunction
-	if attrs.SeparatorFunc == nil {
-		sf = SFFunction(func() (string, float64) { return attrs.SeparatorChar, 0.0 })
+	if r.SeparatorFunc == nil {
+		sf = SFFunction(func() (string, float64) { return r.SeparatorChar, 0.0 })
 	} else {
-		sf = attrs.SeparatorFunc
+		sf = r.SeparatorFunc
 	}
 
 	// Construct a map of which words to capitalize
-	capWords := make(map[int]bool, attrs.Length)
-	switch attrs.Capitalize {
+	capWords := make(map[int]bool, r.Length)
+	switch r.Capitalize {
 	case CSFirst:
 		capWords[0] = true
 	case CSOne:
-		w := int(Int31n(uint32(attrs.Length)))
+		w := int(Int31n(uint32(r.Length)))
 		capWords[w] = true
 	case CSRandom:
-		for i := 1; i <= attrs.Length; i++ {
+		for i := 1; i <= r.Length; i++ {
 			if Int31n(2) == 1 {
 				capWords[i] = true
 			}
 		}
 	case CSAll:
-		for i := 1; i <= attrs.Length; i++ {
+		for i := 1; i <= r.Length; i++ {
 			capWords[i] = true
 		}
 	}
 
 	toks := []Token{}
-	for i := 0; i < attrs.Length; i++ {
-		w := g.words[Int31n(uint32(g.Size()))]
+	for i := 0; i < r.Length; i++ {
+		w := wl.words[Int31n(uint32(wl.Size()))]
 
 		if capWords[i] {
 			w = strings.Title(w)
@@ -128,7 +137,7 @@ func (g WordListPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
 		if len(w) > 0 {
 			toks = append(toks, Token{w, AtomTokenType})
 		}
-		if i < attrs.Length-1 {
+		if i < r.Length-1 {
 			sep, _ := sf()
 			if len(sep) > 0 {
 				toks = append(toks, Token{sep, SeparatorTokenType})
@@ -136,27 +145,31 @@ func (g WordListPasswordGenerator) Generate(attrs GenAttrs) (Password, error) {
 		}
 	}
 	p.Tokens = toks
-	p.ent = attrs.calculateWLEntropy(attrs.Length, int(g.Size()))
+	p.ent = r.Entropy(wl)
 	return p, nil
 }
 
+// Entropy needs to know the wordlist size to calculate entropy for some attributes
 // BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
-func (attrs WordListAttrs) calculateWLEntropy(pwLength, listSize int) float32 {
-	ent := entropySimple(pwLength, listSize)
-	switch attrs.Capitalize {
+// Fixing that bug will require having some more information about the WordList available
+// which is why we are passing the list instead of just its size.
+func (r WLRecipe) Entropy(wl *WordList) float32 {
+	size := int(wl.Size())
+	ent := entropySimple(r.Length, size)
+	switch r.Capitalize {
 	case CSRandom:
-		ent += float64(pwLength)
+		ent += float64(r.Length)
 	case CSOne:
-		ent += math.Log2(float64(pwLength))
+		ent += math.Log2(float64(r.Length))
 	default: // No change in entropy
 	}
 
 	// Entropy contribution of separators
 	sepEnt := 0.0
-	if attrs.SeparatorFunc != nil {
-		_, sepEnt = attrs.SeparatorFunc()
+	if r.SeparatorFunc != nil {
+		_, sepEnt = r.SeparatorFunc()
 	}
-	ent += (float64(pwLength) - 1.0) * sepEnt
+	ent += (float64(r.Length) - 1.0) * sepEnt
 
 	return float32(ent)
 }

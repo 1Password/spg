@@ -8,23 +8,58 @@ passwords it returns follow a uniform distribution.
 The clients of this package are expected to manage what is presented to users.
 This engine offers far greater flexibility than should normally be exposed to users.
 
-The various `Generate()` methods return a `Password` object which has a `String()` method
-and an `Entropy()` method.
+Wordlist and pronounceable
 
-Work in Progress -- Interface may change
+The word list generator produces things like "correct horse battery staple", but
+when the list is of pronounceable syllables, it can also be set up to produce things
+like
 
-For the moment (March 2018), how the `Generate()` methods are called and how the
-generators are build is still subject to change.
+    Mirk9vust8jilk3rooy
+    scuy9lam2lerk9Kais
+    smoh1fock6mirn7Lic
+    jaud3Rew4jo6mont
 
-A word about "Entropy"
+Lengths for these are specified in terms of the number of elements drawn from the
+list to be included in these passwords (not counting the separators).
+Although the above examples all have different lengths in terms of number of characters,
+they were all specified as Length 4.
+
+The passwords that one gets depend on the word list recipe, WLRecipe, and the actual
+word list provided.
+
+Character passwords
+
+Character-based are your typical notion of generated password,
+however these can be specified in ways to produce only numeric PINs if desired.
+The passwords generated are a function of the CharRecipe.
+
+The Generate and Entropy methods
+
+Both word list recipes and and character recipies (WLRecipe, CharRecipe) support
+their own Generate and Entropy methods.
+However, these take different arguments,
+as the WLRecipe.Generate and Entropy functions need to know
+things about the WordList.
+The corresponding functions for character based passwords don't need that
+extra information.
+
+It's tempting to try to bring Generate and Entropy under a single interface.
+Don't fall for that temptation.
+
+The Generate methods return a Password. There is a fair amount of internal structure
+to a Password object, but the ones you are most after is available through
+the Password.String() and Entropy() methods.
+
+A word about Entropy
 
 Entropy is a highly misleading concept when applied to passwords. In the general case it
 is either an incoherent concept or the wrong concept to use when talking about the strength
 of a password.
 It does, however, make sense when a password is drawn uniformly from a space of possible passwords.
-This package does ensure that passwords are generated uniformly given the requirements
-passed to the generator. Indeed, the Entropy is a function solely of those requirements
-and paramater.
+This package does ensure that passwords are generated uniformly given the recipe
+passed to the generator.
+Indeed, the Entropy is a function solely of the recipe and some properties
+of any wordlist given.
 */
 package spg
 
