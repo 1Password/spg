@@ -70,7 +70,7 @@ func TestDigitGenerator(t *testing.T) {
 
 		for i := 1; i <= 20; i++ {
 			p, err := r.Generate()
-			pw, ent := p.String(), p.Entropy()
+			pw, ent := p.String(), p.Entropy
 			if err != nil {
 				t.Errorf("failed to generate password: %v", err)
 			}
@@ -96,7 +96,7 @@ func TestNonASCII(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		p, err := r.Generate()
-		pw, ent := p.String(), p.Entropy()
+		pw, ent := p.String(), p.Entropy
 		if err != nil {
 			t.Errorf("Couldn't generate poopy password: %v", err)
 		}

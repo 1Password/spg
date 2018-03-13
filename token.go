@@ -188,7 +188,7 @@ func (p Password) isAlternatingTokens() bool {
 
 // Tokenize reconstructs a Password from a password string and TokenIndices produced by TIndices()
 func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
-	p := Password{ent: entropy}
+	p := Password{Entropy: entropy}
 	chars := strings.Split(pw, "")
 
 	if len(ti) == 0 {

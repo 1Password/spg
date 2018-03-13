@@ -35,7 +35,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 		toks[i] = Token{c, AtomTokenType}
 	}
 	p.Tokens = toks
-	p.ent = r.Entropy()
+	p.Entropy = r.Entropy()
 	return p, nil
 }
 

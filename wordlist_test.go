@@ -77,7 +77,7 @@ func TestWLGenerator(t *testing.T) {
 	a := NewWLRecipe(3, wl)
 	a.SeparatorChar = " "
 	p, err := a.Generate()
-	pwd, ent := p.String(), p.Entropy()
+	pwd, ent := p.String(), p.Entropy
 	if err != nil {
 		t.Errorf("failed to generate password: %s", err)
 	}
@@ -116,7 +116,7 @@ func TestWLGenerator(t *testing.T) {
 	}
 
 	p, err = WLRecipe{Length: 100, WordList: threeG}.Generate()
-	ent = p.Entropy()
+	ent = p.Entropy
 	const expectedEnt = float32(158.496250) // 100 * log2(3). Calculated with something other than go
 	if err != nil {
 		t.Errorf("failed to generate long password: %v", err)
@@ -137,7 +137,7 @@ func TestWLCapitalization(t *testing.T) {
 	r.SeparatorChar = " "
 	r.Capitalize = CSRandom
 	p, err := r.Generate()
-	ent := p.Entropy()
+	ent := p.Entropy
 	expectedEnt := float32(51.69925) // 20 * (log2(3) + 1)
 	if err != nil {
 		t.Errorf("failed to generate %d word password: %v", length, err)
@@ -161,7 +161,7 @@ func TestWLFirstCap(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		p, err := r.Generate()
-		ent := p.Entropy()
+		ent := p.Entropy
 		expectedEnt := float32(7.92481) // 5 * (log2(3))
 		if err != nil {
 			t.Errorf("failed to generate %d word password: %v", length, err)
@@ -220,7 +220,7 @@ func TestWLOneCap(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
 		p, err := r.Generate()
-		ent := p.Entropy()
+		ent := p.Entropy
 		expectedEnt := float32(19.619086) // 5 * log2(11) + log2(5)
 		if err != nil {
 			t.Errorf("failed to generate %d word password: %v", length, err)
@@ -303,7 +303,7 @@ func TestNonLetterWL(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		p, err := a.Generate()
-		pw, ent := p.String(), p.Entropy()
+		pw, ent := p.String(), p.Entropy
 		if err != nil {
 			t.Errorf("generator failed: %v", err)
 		}
@@ -344,7 +344,7 @@ func TestSyllableDigit(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		p, err := r.Generate()
-		pw, ent := p.String(), p.Entropy()
+		pw, ent := p.String(), p.Entropy
 		if err != nil {
 			t.Errorf("failed to generate syllable pw: %v", err)
 		}
@@ -372,7 +372,7 @@ func TestNonASCIISeparators(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		p, err := a.Generate()
-		pw, ent := p.String(), p.Entropy()
+		pw, ent := p.String(), p.Entropy
 		if err != nil {
 			t.Errorf("generator failed: %v", err)
 		}
