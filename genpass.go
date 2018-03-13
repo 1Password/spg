@@ -30,4 +30,5 @@ func (p Password) Entropy() float32 { return p.ent }
 // Generator is a fully configured password recipe
 type Generator interface {
 	Generate() (*Password, error)
+	Entropy() float32
 }
