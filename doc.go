@@ -38,7 +38,7 @@ The Generate and Entropy methods
 The word list and character recipes (WLRecipe, CharRecipe) implement a Generator
 interface with two methods, Generate and Entropy.
 
-Generate return a Password. There is a fair amount of internal structure
+Generate returns a Password. There is a fair amount of internal structure
 to a Password object, but the ones you are most after is available through
 the Password.String() and Entropy() methods.
 
