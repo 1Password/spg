@@ -148,7 +148,7 @@ func (r WLRecipe) Generate() (*Password, error) {
 		}
 	}
 	p.Tokens = toks
-	p.ent = r.Entropy()
+	p.Entropy = r.Entropy()
 	return p, nil
 }
 

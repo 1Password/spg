@@ -24,7 +24,7 @@ func TestTokenizer(t *testing.T) {
 				{" ", SeparatorTokenType},
 				{"staple", AtomTokenType},
 			},
-			ent: 44.0,
+			Entropy: 44.0,
 		},
 		expectedTI: TokenIndices{
 			byte(AlternatingTIIndexKind),
@@ -44,7 +44,7 @@ func TestTokenizer(t *testing.T) {
 				{"staple", AtomTokenType},
 				{" ", SeparatorTokenType},
 			},
-			ent: 44.0,
+			Entropy: 44.0,
 		},
 		expectedTI: TokenIndices{
 			byte(FullTIIndexKind),
@@ -72,7 +72,7 @@ func TestTokenizer(t *testing.T) {
 				{"d", AtomTokenType},
 				{"1", AtomTokenType},
 			},
-			ent: 44.0,
+			Entropy: 14.0,
 		},
 		expectedTI: TokenIndices{byte(CharacterTIIndexKind)},
 	})
@@ -85,7 +85,7 @@ func TestTokenizer(t *testing.T) {
 				{"battery", AtomTokenType},
 				{"staple", AtomTokenType},
 			},
-			ent: 44.0,
+			Entropy: 44.0,
 		},
 		expectedTI: TokenIndices{
 			byte(VarAtomsTIIndexKind),
@@ -104,7 +104,7 @@ func TestTokenizer(t *testing.T) {
 			t.Errorf("ti != expected\n\tti: %v\n\tExpected: %v", ti, tVec.expectedTI)
 		}
 		pw := tP.String()
-		ent := tP.Entropy()
+		ent := tP.Entropy
 
 		newP, err := Tokenize(pw, ti, ent)
 		if err != nil {
