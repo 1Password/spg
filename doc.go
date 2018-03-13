@@ -35,20 +35,16 @@ The passwords generated are a function of the CharRecipe.
 
 The Generate and Entropy methods
 
-Both word list recipes and and character recipies (WLRecipe, CharRecipe) support
-their own Generate and Entropy methods.
-However, these take different arguments,
-as the WLRecipe.Generate and Entropy functions need to know
-things about the WordList.
-The corresponding functions for character based passwords don't need that
-extra information.
+The word list and character recipes (WLRecipe, CharRecipe) implement a Generator
+interface with two methods, Generate and Entropy.
 
-It's tempting to try to bring Generate and Entropy under a single interface.
-Don't fall for that temptation.
-
-The Generate methods return a Password. There is a fair amount of internal structure
+Generate returns a Password. There is a fair amount of internal structure
 to a Password object, but the ones you are most after is available through
 the Password.String() and Entropy() methods.
+
+Entropy returns the entropy of a password that would be generated
+given the current recipe. Although all generators implement Entropy, the way it is calculated can differ greatly depending on the recipe.
+
 
 A word about Entropy
 
