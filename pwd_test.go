@@ -55,7 +55,7 @@ func TestDigitGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("%q did not compile: %v", v.re, err)
 		}
-		r := NewCharRecipe(12)
+		r := &CharRecipe{Length: 12}
 
 		// Starting with digits-only
 		r.Allow = 0 | Digits
@@ -82,9 +82,11 @@ func TestDigitGenerator(t *testing.T) {
 
 func TestNonASCII(t *testing.T) {
 	length := 10
-	r := NewCharRecipe(length)
-	r.Allow = 0
-	r.IncludeExtra = "űβ™λ∞⊕💩"
+	r :=  &CharRecipe{
+		Length: length,
+		Allow: 0,
+		IncludeExtra: "űβ™λ∞⊕💩",
+	}
 	expectedEnt := float32(math.Log2(7.0) * float64(length))
 
 	for i := 0; i < 20; i++ {

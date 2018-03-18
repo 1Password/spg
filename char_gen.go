@@ -108,7 +108,12 @@ type CharRecipe struct {
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
-// more structure
+// Defaults are
+//    r.Allow = Letters | Digits | Symbols
+//    r.Exclude = Ambiguous
+// And these may need to be cleared if you want to tinker with them
+// This function exists only as a parallel to NewWLRecipe. It probably makes sense
+// for users to forego this function and just use r := &CharRecipe{...} instead.
 func NewCharRecipe(length int) *CharRecipe {
 
 	r := new(CharRecipe)
