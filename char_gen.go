@@ -28,9 +28,9 @@ const (
 	Ambiguous
 	WhiteSpace
 
-	None    CTFlag = 0
-	Letters        = Uppers | Lowers
-	All            = Letters | Digits | Symbols // This is not really all, but it is all the sane ones
+	None           CTFlag = 0
+	Letters               = Uppers | Lowers
+	SafeCharacters        = Letters | Digits | Symbols
 )
 
 // charTypesByFlag
