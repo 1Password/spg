@@ -2,17 +2,18 @@ package spg
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
 // Character types for Character and Separator generation
 const ( // character types
-	CTUpper      = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	CTLower      = "abcdefghijklmnopqrstuvwxyz"
-	CTDigits     = "0123456789"
-	CTAmbiguous  = "0O1Il5S"
-	CTSymbols    = "!#%)*+,-.:=>?@]^_}~"
-	CTWhiteSpace = " \t"
+	ctUpper      = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	ctLower      = "abcdefghijklmnopqrstuvwxyz"
+	ctDigits     = "0123456789"
+	ctAmbiguous  = "0O1Il5S"
+	ctSymbols    = "!#%)*+,-.:=>?@]^_}~"
+	ctWhiteSpace = " \t"
 )
 
 // CTFlag is the type for the be
@@ -27,17 +28,19 @@ const (
 	Ambiguous
 	WhiteSpace
 
-	Letters = Uppers | Lowers
+	None    CTFlag = 0
+	Letters        = Uppers | Lowers
+	All            = Letters | Digits | Symbols // This is not really all, but it is all the sane ones
 )
 
 // charTypesByFlag
 var charTypeByFlag = map[CTFlag]string{
-	Uppers:     CTUpper,
-	Lowers:     CTLower,
-	Digits:     CTDigits,
-	Symbols:    CTSymbols,
-	Ambiguous:  CTAmbiguous,
-	WhiteSpace: CTWhiteSpace,
+	Uppers:     ctUpper,
+	Lowers:     ctLower,
+	Digits:     ctDigits,
+	Symbols:    ctSymbols,
+	Ambiguous:  ctAmbiguous,
+	WhiteSpace: ctWhiteSpace,
 }
 
 /*** Character type passwords ***/
@@ -53,12 +56,12 @@ func (r CharRecipe) Generate() (*Password, error) {
 	p := &Password{}
 	chars := r.buildCharacterList()
 
-	toks := make([]Token, r.Length)
+	tokens := make([]Token, r.Length)
 	for i := 0; i < r.Length; i++ {
 		c := chars[Int31n(uint32(len(chars)))]
-		toks[i] = Token{c, AtomTokenType}
+		tokens[i] = Token{c, AtomTokenType}
 	}
-	p.Tokens = toks
+	p.Tokens = tokens
 	p.Entropy = r.Entropy()
 	return p, nil
 }
@@ -94,18 +97,6 @@ func (r CharRecipe) Entropy() float32 {
 	return float32(entropySimple(r.Length, size))
 }
 
-// CharInclusion holds the inclusion/exclusion value for some character class
-type CharInclusion int
-
-// CI{Included,Required,Excluded,Unstated} indicate how some class of characters (such as digts)
-// are to be included (or not) in the generated password
-const (
-	CIUnstated = iota // Not included by this statement, but not excluded either
-	CIAllow           // Allowed in the generated password
-	CIRequire         // At least one of these must be in each generated password
-	CIExclude         // None of these may appear in a generated password
-)
-
 // CharRecipe are generator attributes relevent for character list generation
 type CharRecipe struct {
 	Length       int    // Length of generated password in characters
@@ -114,17 +105,6 @@ type CharRecipe struct {
 	Exclude      CTFlag // Flags for which character types to exclude
 	ExcludeExtra string // Specific characters caller may want excluded
 	IncludeExtra string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
-}
-
-// We need a way to map certain field names to the alphabets they correspond to
-// I got worried about keeping this in sync with CharRecipe, so there's a test
-// for that.
-var fieldNamesAlphabets = map[string]string{
-	"Uppers":    CTUpper,
-	"Lowers":    CTLower,
-	"Digits":    CTDigits,
-	"Symbols":   CTSymbols,
-	"Ambiguous": CTAmbiguous,
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
@@ -138,4 +118,12 @@ func NewCharRecipe(length int) *CharRecipe {
 	r.Exclude = Ambiguous
 
 	return r
+}
+
+// Alphabet returns a sorted string of the characters that are
+// drawn from in a given recipe, r
+func (r CharRecipe) Alphabet() string {
+	s := r.buildCharacterList()
+	sort.Strings(s)
+	return strings.Join(s, "")
 }

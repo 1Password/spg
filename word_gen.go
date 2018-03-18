@@ -130,7 +130,7 @@ func (r WLRecipe) Generate() (*Password, error) {
 		}
 	}
 
-	toks := []Token{}
+	ts := []Token{}
 	for i := 0; i < r.Length; i++ {
 		w := r.words[Int31n(uint32(r.Size()))]
 
@@ -138,16 +138,16 @@ func (r WLRecipe) Generate() (*Password, error) {
 			w = strings.Title(w)
 		}
 		if len(w) > 0 {
-			toks = append(toks, Token{w, AtomTokenType})
+			ts = append(ts, Token{w, AtomTokenType})
 		}
 		if i < r.Length-1 {
 			sep, _ := sf()
 			if len(sep) > 0 {
-				toks = append(toks, Token{sep, SeparatorTokenType})
+				ts = append(ts, Token{sep, SeparatorTokenType})
 			}
 		}
 	}
-	p.Tokens = toks
+	p.Tokens = ts
 	p.Entropy = r.Entropy()
 	return p, nil
 }
@@ -193,23 +193,23 @@ type SFFunction func() (string, float64)
 func SFNone() (string, float64) { return "", 0.0 }
 
 // SFDigits1 each separator is a randomly chosen digit
-func SFDigits1() (string, float64) { return nFromString(CTDigits, 1) }
+func SFDigits1() (string, float64) { return nFromString(ctDigits, 1) }
 
 // SFDigits2 each separator is two randomly chosen digits
-func SFDigits2() (string, float64) { return nFromString(CTDigits, 2) }
+func SFDigits2() (string, float64) { return nFromString(ctDigits, 2) }
 
 // SFDigitsNoAmbiguous1 each separator is a non-ambiguous digit
 func SFDigitsNoAmbiguous1() (string, float64) {
-	return nFromString(subtractString(CTDigits, CTAmbiguous), 1)
+	return nFromString(subtractString(ctDigits, ctAmbiguous), 1)
 }
 
 // SFDigitsNoAmbiguous2 each separator is a pair of randomly chosen non-ambiguous digits
 func SFDigitsNoAmbiguous2() (string, float64) {
-	return nFromString(subtractString(CTDigits, CTAmbiguous), 2)
+	return nFromString(subtractString(ctDigits, ctAmbiguous), 2)
 }
 
 // SFSymbols each separator is a randomly chosen symbol
-func SFSymbols() (string, float64) { return nFromString(CTSymbols, 1) }
+func SFSymbols() (string, float64) { return nFromString(ctSymbols, 1) }
 
 // SFDigitsSymbols each separator is a randomly chosen digit or symbol
-func SFDigitsSymbols() (string, float64) { return nFromString(CTSymbols+CTDigits, 1) }
+func SFDigitsSymbols() (string, float64) { return nFromString(ctSymbols+ctDigits, 1) }
