@@ -8,7 +8,7 @@ import (
 
 // WLRecipe (Word List password Attributes) are the generator settings for wordlist (syllable list) passwords
 type WLRecipe struct {
-	*WordList                // Set of words for generating passwords
+	list          *WordList  // Set of words for generating passwords
 	Length        int        // Length of generated password in words
 	SeparatorChar string     // What character(s) should separate words
 	SeparatorFunc SFFunction // function to generate separators, If nil just use SeperatorChar
@@ -33,7 +33,7 @@ func NewWLRecipe(length int, wl *WordList) *WLRecipe {
 	attrs := &WLRecipe{
 		Length:     length,
 		Capitalize: CSNone,
-		WordList:   wl,
+		list:       wl,
 	}
 	return attrs
 }
@@ -41,6 +41,11 @@ func NewWLRecipe(length int, wl *WordList) *WLRecipe {
 // WordList contains the list of words WLGenerator()
 type WordList struct {
 	words []string
+}
+
+// Size of the wordlist in the recipe
+func (r WLRecipe) Size() uint32 {
+	return r.list.Size()
 }
 
 // Size returns the number of items in the generator's wordlist or the maxiumum uint32, whichever is smaller
@@ -132,7 +137,7 @@ func (r WLRecipe) Generate() (*Password, error) {
 
 	ts := []Token{}
 	for i := 0; i < r.Length; i++ {
-		w := r.words[Int31n(uint32(r.Size()))]
+		w := r.list.words[Int31n(uint32(r.Size()))]
 
 		if capWords[i] {
 			w = strings.Title(w)
