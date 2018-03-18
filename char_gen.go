@@ -16,6 +16,31 @@ const ( // character types
 	CTWhiteSpace = " \t"
 )
 
+// CTFlag is the type for the be
+type CTFlag uint32
+
+// Character type flags
+const (
+	Uppers CTFlag = 1 << iota
+	Lowers
+	Digits
+	Symbols
+	Ambiguous
+	WhiteSpace
+
+	Letters = Uppers | Lowers
+)
+
+// charTypesByFlag
+var charTypeByFlag = map[CTFlag]string{
+	Uppers:     CTUpper,
+	Lowers:     CTLower,
+	Digits:     CTDigits,
+	Symbols:    CTSymbols,
+	Ambiguous:  CTAmbiguous,
+	WhiteSpace: CTWhiteSpace,
+}
+
 /*** Character type passwords ***/
 
 // Generate a password using the character generator. The attributes contain
@@ -94,6 +119,9 @@ type CharRecipe struct {
 	Digits       CharInclusion // Digits [0-9] may be included in password
 	Symbols      CharInclusion // Symbols, punctuation characters may be included in password
 	Ambiguous    CharInclusion // Ambiguous characters (such as "I" and "1") are to be excluded from password
+	Allow        CTFlag        // Flags for which character types to allow
+	Require      CTFlag        // Flags for which character types to require
+	Exclude      CTFlag        // Flags for which character types to exclude
 	ExcludeExtra string        // Specific characters caller may want excluded
 	IncludeExtra string        // Specific characters caller may want excluded (this is where to put emojis. Please don't)
 }
