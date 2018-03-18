@@ -2,7 +2,6 @@ package spg
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -70,25 +69,21 @@ func (r CharRecipe) Generate() (*Password, error) {
 // there are no duplicates
 func (r CharRecipe) buildCharacterList() []string {
 
-	v := reflect.ValueOf(r)
-
 	ab := r.IncludeExtra
 	exclude := r.ExcludeExtra
-	for fname, s := range fieldNamesAlphabets {
-		f := v.FieldByName(fname)
-		switch f.Interface().(CharInclusion) {
-		case CIRequire:
-			// fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIAllow)
-			fallthrough
-		case CIAllow:
-			ab += s
-		case CIExclude:
-			exclude += s
-		case CIUnstated: // nothing to do
-		default:
-			fmt.Printf("%q not known. Will treat %q as %q\n", f.Interface(), fname, CIUnstated)
+	for f, ct := range charTypeByFlag {
+		if r.Allow&f == f {
+			ab += ct
+		}
+		// Treat Require as Allow for now
+		if r.Require&f == f {
+			ab += ct
+		}
+		if r.Exclude&f == f {
+			exclude += ct
 		}
 	}
+
 	alphabet := subtractString(ab, exclude)
 	return strings.Split(alphabet, "")
 }
@@ -113,17 +108,12 @@ const (
 
 // CharRecipe are generator attributes relevent for character list generation
 type CharRecipe struct {
-	Length       int           // Length of generated password in characters
-	Uppers       CharInclusion // Uppercase letters, [A-Z] may be included in password
-	Lowers       CharInclusion // Lowercase letters, [a-z] may be included in password
-	Digits       CharInclusion // Digits [0-9] may be included in password
-	Symbols      CharInclusion // Symbols, punctuation characters may be included in password
-	Ambiguous    CharInclusion // Ambiguous characters (such as "I" and "1") are to be excluded from password
-	Allow        CTFlag        // Flags for which character types to allow
-	Require      CTFlag        // Flags for which character types to require
-	Exclude      CTFlag        // Flags for which character types to exclude
-	ExcludeExtra string        // Specific characters caller may want excluded
-	IncludeExtra string        // Specific characters caller may want excluded (this is where to put emojis. Please don't)
+	Length       int    // Length of generated password in characters
+	Allow        CTFlag // Flags for which character types to allow
+	Require      CTFlag // Flags for which character types to require
+	Exclude      CTFlag // Flags for which character types to exclude
+	ExcludeExtra string // Specific characters caller may want excluded
+	IncludeExtra string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
 }
 
 // We need a way to map certain field names to the alphabets they correspond to
@@ -144,12 +134,8 @@ func NewCharRecipe(length int) *CharRecipe {
 	r := new(CharRecipe)
 	r.Length = length
 
-	r.Ambiguous = CIExclude
-
-	r.Digits = CIAllow
-	r.Uppers = CIAllow
-	r.Lowers = CIAllow
-	r.Symbols = CIAllow
+	r.Allow = Letters | Digits | Symbols
+	r.Exclude = Ambiguous
 
 	return r
 }
