@@ -75,14 +75,14 @@ func (r CharRecipe) buildCharacterList() []string {
 	ab := r.IncludeExtra
 	exclude := r.ExcludeExtra
 	for f, ct := range charTypeByFlag {
-		if r.Allow&f == f {
+		if r.Allow&f != 0 {
 			ab += ct
 		}
 		// Treat Require as Allow for now
-		if r.Require&f == f {
+		if r.Require&f != 0 {
 			ab += ct
 		}
-		if r.Exclude&f == f {
+		if r.Exclude&f != 0 {
 			exclude += ct
 		}
 	}
