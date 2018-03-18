@@ -8,12 +8,11 @@ import (
 
 // Character types for Character and Separator generation
 const ( // character types
-	ctUpper      = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	ctLower      = "abcdefghijklmnopqrstuvwxyz"
-	ctDigits     = "0123456789"
-	ctAmbiguous  = "0O1Il5S"
-	ctSymbols    = "!#%)*+,-.:=>?@]^_}~"
-	ctWhiteSpace = " \t"
+	ctUpper     = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	ctLower     = "abcdefghijklmnopqrstuvwxyz"
+	ctDigits    = "0123456789"
+	ctAmbiguous = "0O1Il5S"
+	ctSymbols   = "!#%)*+,-.:=>?@]^_}~"
 )
 
 // CTFlag is the type for the be
@@ -21,26 +20,28 @@ type CTFlag uint32
 
 // Character type flags
 const (
+	// Character types useful for Allow and Require
 	Uppers CTFlag = 1 << iota
 	Lowers
 	Digits
 	Symbols
-	Ambiguous
-	WhiteSpace
 
-	None           CTFlag = 0
-	Letters               = Uppers | Lowers
-	SafeCharacters        = Letters | Digits | Symbols
+	// Character types useful for Exclude
+	Ambiguous
+
+	// Named combinations
+	None    CTFlag = 0
+	Letters        = Uppers | Lowers
+	All            = Letters | Digits | Symbols
 )
 
 // charTypesByFlag
 var charTypeByFlag = map[CTFlag]string{
-	Uppers:     ctUpper,
-	Lowers:     ctLower,
-	Digits:     ctDigits,
-	Symbols:    ctSymbols,
-	Ambiguous:  ctAmbiguous,
-	WhiteSpace: ctWhiteSpace,
+	Uppers:    ctUpper,
+	Lowers:    ctLower,
+	Digits:    ctDigits,
+	Symbols:   ctSymbols,
+	Ambiguous: ctAmbiguous,
 }
 
 /*** Character type passwords ***/
