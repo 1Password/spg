@@ -20,7 +20,7 @@ type CTFlag uint32
 
 // Character type flags
 const (
-	// Character types useful for Include and Require
+	// Character types useful for Allow and Include
 	Uppers CTFlag = 1 << iota
 	Lowers
 	Digits
@@ -73,14 +73,14 @@ func (r CharRecipe) Generate() (*Password, error) {
 // there are no duplicates
 func (r CharRecipe) buildCharacterList() []string {
 
-	ab := r.IncludeChars
+	ab := r.AllowChars
 	exclude := r.ExcludeChars
 	for f, ct := range charTypeByFlag {
-		if r.Include&f != 0 {
+		if r.Allow&f != 0 {
 			ab += ct
 		}
-		// Treat Require as Include for now
-		if r.Require&f != 0 {
+		// Treat Include as Allow for now
+		if r.Include&f != 0 {
 			ab += ct
 		}
 		if r.Exclude&f != 0 {
@@ -99,18 +99,30 @@ func (r CharRecipe) Entropy() float32 {
 }
 
 // CharRecipe are generator attributes relevent for character list generation
+//
+// Allow - Characters from these sets may appear in the generated password.
+//
+// Exclude - Characters from these sets must not appear in the generated password.
+// Exclusion overrides Include and Allow.
+//
+// Include - At least one character from each of these sets must appear in the generated password.
 type CharRecipe struct {
-	Length       int    // Length of generated password in characters
-	Include      CTFlag // Flags for which character types to allow
-	Require      CTFlag // Flags for which character types to require
-	Exclude      CTFlag // Flags for which character types to exclude
-	ExcludeChars string // Specific characters caller may want excluded
-	IncludeChars string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
+	Length int // Length of generated password in characters
+
+	// Character types to Allow, Include (require), or Exclude in generated password
+	Allow   CTFlag // Types which may appear
+	Include CTFlag // Types which must appear (at least one from each type)
+	Exclude CTFlag // Types must not appear
+
+	// User provided character sets for Allow, Include, and Exclude
+	AllowChars   string   // Specific characters that may appear
+	IncludeSets  []string // Not yet implemented
+	ExcludeChars string   // Specific characters that must not appear
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
 // Defaults are
-//    r.Include = Letters | Digits | Symbols
+//    r.Allow = Letters | Digits | Symbols
 //    r.Exclude = Ambiguous
 // And these may need to be cleared if you want to tinker with them
 func NewCharRecipe(length int) *CharRecipe {
@@ -118,7 +130,7 @@ func NewCharRecipe(length int) *CharRecipe {
 	r := new(CharRecipe)
 	r.Length = length
 
-	r.Include = Letters | Digits | Symbols
+	r.Allow = Letters | Digits | Symbols
 	r.Exclude = Ambiguous
 
 	return r
