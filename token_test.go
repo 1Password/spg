@@ -9,7 +9,7 @@ func TestTokenizer(t *testing.T) {
 
 	type tokenVec struct {
 		Pwd        Password
-		expectedTI TokenIndices
+		expectedTI Indices
 		expectedPW string
 	}
 	vecs := []tokenVec{}
@@ -27,8 +27,8 @@ func TestTokenizer(t *testing.T) {
 			},
 			Entropy: 44.0,
 		},
-		expectedTI: TokenIndices{
-			byte(AlternatingTIIndexKind),
+		expectedTI: Indices{
+			byte(AlternatingIndexKind),
 			7, 1, 5, 1, 7, 1, 6,
 		},
 		expectedPW: "correct horse battery staple",
@@ -48,8 +48,8 @@ func TestTokenizer(t *testing.T) {
 			},
 			Entropy: 44.0,
 		},
-		expectedTI: TokenIndices{
-			byte(FullTIIndexKind),
+		expectedTI: Indices{
+			byte(FullIndexKind),
 			7, byte(AtomType),
 			1, byte(SeparatorType),
 			5, byte(AtomType),
@@ -77,7 +77,7 @@ func TestTokenizer(t *testing.T) {
 			},
 			Entropy: 14.0,
 		},
-		expectedTI: TokenIndices{byte(CharacterTIIndexKind)},
+		expectedTI: Indices{byte(CharacterIndexKind)},
 		expectedPW: "P@ssw0rd1",
 	})
 
@@ -91,8 +91,8 @@ func TestTokenizer(t *testing.T) {
 			},
 			Entropy: 44.0,
 		},
-		expectedTI: TokenIndices{
-			byte(VarAtomsTIIndexKind),
+		expectedTI: Indices{
+			byte(VarAtomsIndexKind),
 			7, 5, 7, 6,
 		},
 		expectedPW: "correcthorsebatterystaple",
@@ -102,7 +102,7 @@ func TestTokenizer(t *testing.T) {
 
 		tP := tVec.Pwd
 		ts := tVec.Pwd.tokens
-		ti, err := ts.TIndices()
+		ti, err := ts.MakeIndices()
 		if err != nil {
 			t.Errorf("failed to create token indices: %v", err)
 		}
