@@ -61,8 +61,8 @@ func TestDigitGenerator(t *testing.T) {
 		r.Include = 0 | Digits
 		r.Exclude = 0 // Don't exclude ambiguous
 
-		r.ExcludeExtra = v.exc
-		r.IncludeExtra = v.inc
+		r.ExcludeChars = v.exc
+		r.IncludeChars = v.inc
 
 		for i := 1; i <= 20; i++ {
 			p, err := r.Generate()
@@ -85,7 +85,7 @@ func TestNonASCII(t *testing.T) {
 	r := &CharRecipe{
 		Length:       length,
 		Include:      0,
-		IncludeExtra: "űβ™λ∞⊕💩",
+		IncludeChars: "űβ™λ∞⊕💩",
 	}
 	expectedEnt := float32(math.Log2(7.0) * float64(length))
 

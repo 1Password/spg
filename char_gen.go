@@ -73,8 +73,8 @@ func (r CharRecipe) Generate() (*Password, error) {
 // there are no duplicates
 func (r CharRecipe) buildCharacterList() []string {
 
-	ab := r.IncludeExtra
-	exclude := r.ExcludeExtra
+	ab := r.IncludeChars
+	exclude := r.ExcludeChars
 	for f, ct := range charTypeByFlag {
 		if r.Include&f != 0 {
 			ab += ct
@@ -104,8 +104,8 @@ type CharRecipe struct {
 	Include      CTFlag // Flags for which character types to allow
 	Require      CTFlag // Flags for which character types to require
 	Exclude      CTFlag // Flags for which character types to exclude
-	ExcludeExtra string // Specific characters caller may want excluded
-	IncludeExtra string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
+	ExcludeChars string // Specific characters caller may want excluded
+	IncludeChars string // Specific characters caller may want excluded (this is where to put emojis. Please don't)
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
@@ -113,8 +113,6 @@ type CharRecipe struct {
 //    r.Include = Letters | Digits | Symbols
 //    r.Exclude = Ambiguous
 // And these may need to be cleared if you want to tinker with them
-// This function exists only as a parallel to NewWLRecipe. It probably makes sense
-// for users to forego this function and just use r := &CharRecipe{...} instead.
 func NewCharRecipe(length int) *CharRecipe {
 
 	r := new(CharRecipe)
