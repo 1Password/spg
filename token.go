@@ -133,16 +133,18 @@ func (ts Tokens) TIndices() (TokenIndices, error) {
 	}
 }
 
+// tokensKind looks at the tokens and works out what the most
+// appropriate kind of token index we should use
 func (ts Tokens) tokensKind() TIndexKind {
 
 	// It's only atoms of length one (so character password)
-	if ts.IsAllAtoms() && ts.maxTokenLen() == 1 {
+	if ts.isAllAtoms() && ts.maxTokenLen() == 1 {
 		return CharacterTIIndexKind
 	}
 
 	// Some atoms have length other than 1, so we will need
 	// lengths in our index
-	if ts.IsAllAtoms() {
+	if ts.isAllAtoms() {
 		return VarAtomsTIIndexKind
 	}
 
@@ -154,6 +156,8 @@ func (ts Tokens) tokensKind() TIndexKind {
 	return FullTIIndexKind
 }
 
+// isAlternatingTokes detects that kinds of passwords that were
+// generated from a wordlist system with a non-empty separator
 func (ts Tokens) isAlternatingTokens() bool {
 	if len(ts)%2 != 1 {
 		return false
@@ -259,6 +263,8 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 }
 
 // TokenTypes returns a set of all of the token types used within a password
+// This is exported to help those who want to do fancy colorful display
+// of passwords.
 func (ts Tokens) TokenTypes() map[TokenType]bool {
 	found := make(map[TokenType]bool)
 	for _, tok := range ts {
@@ -287,6 +293,6 @@ func (ts Tokens) maxTokenLen() int {
 	return max
 }
 
-// IsAllAtoms returns true when all of tokens are Atoms.
-// It returns false if there are no tokens
-func (ts Tokens) IsAllAtoms() bool { return ts.isAllOfType(AtomTokenType) }
+// isAllAtoms returns true when all of tokens are Atoms.
+// It returns false if there are no tokens.
+func (ts Tokens) isAllAtoms() bool { return ts.isAllOfType(AtomTokenType) }
