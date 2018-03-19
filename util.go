@@ -40,12 +40,11 @@ func nFromString(ab string, n int) (string, float64) {
 	sep := ""
 	rAB := strings.Split(ab, "") // an AlphaBet of runes
 	for i := 1; i <= n; i++ {
-		sep += string(rAB[Int31n(uint32(len(rAB)))])
+		sep += string(rAB[int31n(uint32(len(rAB)))])
 	}
 	return sep, ent
 
 }
-
 
 // randomInt32 creates a random 32 bit unsigned integer
 func randomInt32() uint32 {
@@ -83,13 +82,13 @@ func entropySimple(length int, nelem int) float64 {
 	return float64(length) * entPerUnit
 }
 
-// Int31n returns, as an int32, a non-negative random number in [0,n) from a cryptographic appropriate source. It panics if n <= 0 or if
+// int31n returns, as an int32, a non-negative random number in [0,n) from a cryptographic appropriate source. It panics if n <= 0 or if
 // a security-sensitive random number cannot be created. Care is taken to avoid modulo bias.
 //
 // Copied from the math/rand package..
-func Int31n(n uint32) uint32 {
+func int31n(n uint32) uint32 {
 	if n <= 0 {
-		panic("invalid argument to Int31n")
+		panic("invalid argument to int31n")
 	}
 	if n&(n-1) == 0 { // n is power of two, can mask
 		return randomInt32() & (n - 1)

@@ -121,11 +121,11 @@ func (r WLRecipe) Generate() (*Password, error) {
 	case CSFirst:
 		capWords[0] = true
 	case CSOne:
-		w := int(Int31n(uint32(r.Length)))
+		w := int(int31n(uint32(r.Length)))
 		capWords[w] = true
 	case CSRandom:
 		for i := 1; i <= r.Length; i++ {
-			if Int31n(2) == 1 {
+			if int31n(2) == 1 {
 				capWords[i] = true
 			}
 		}
@@ -137,7 +137,7 @@ func (r WLRecipe) Generate() (*Password, error) {
 
 	ts := []Token{}
 	for i := 0; i < r.Length; i++ {
-		w := r.list.words[Int31n(uint32(r.Size()))]
+		w := r.list.words[int31n(uint32(r.Size()))]
 
 		if capWords[i] {
 			w = strings.Title(w)
