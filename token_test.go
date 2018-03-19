@@ -10,6 +10,7 @@ func TestTokenizer(t *testing.T) {
 	type tokenVec struct {
 		Pwd        Password
 		expectedTI TokenIndices
+		expectedPW string
 	}
 	vecs := []tokenVec{}
 
@@ -30,6 +31,7 @@ func TestTokenizer(t *testing.T) {
 			byte(AlternatingTIIndexKind),
 			7, 1, 5, 1, 7, 1, 6,
 		},
+		expectedPW: "correct horse battery staple",
 	})
 
 	vecs = append(vecs, tokenVec{
@@ -57,6 +59,7 @@ func TestTokenizer(t *testing.T) {
 			6, byte(AtomTokenType),
 			1, byte(SeparatorTokenType),
 		},
+		expectedPW: "correct horse battery staple ",
 	})
 
 	vecs = append(vecs, tokenVec{
@@ -75,6 +78,7 @@ func TestTokenizer(t *testing.T) {
 			Entropy: 14.0,
 		},
 		expectedTI: TokenIndices{byte(CharacterTIIndexKind)},
+		expectedPW: "P@ssw0rd1",
 	})
 
 	vecs = append(vecs, tokenVec{
@@ -91,6 +95,7 @@ func TestTokenizer(t *testing.T) {
 			byte(VarAtomsTIIndexKind),
 			7, 5, 7, 6,
 		},
+		expectedPW: "correcthorsebatterystaple",
 	})
 
 	for _, tVec := range vecs {
@@ -105,6 +110,9 @@ func TestTokenizer(t *testing.T) {
 		}
 		pw := tP.String()
 		ent := tP.Entropy
+		if pw != tVec.expectedPW {
+			t.Errorf("pw is %q. Expected %q", pw, tVec.expectedPW)
+		}
 
 		newP, err := Tokenize(pw, ti, ent)
 		if err != nil {
