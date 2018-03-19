@@ -1,6 +1,7 @@
 package spg
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strings"
@@ -151,4 +152,50 @@ func cmpFloat(a, b float64, tolerance int) int {
 		return -1
 	}
 	return 1
+}
+
+// Examples
+// Because these have random output, we can't use "Output:",
+func ExampleCharRecipe_pin() {
+	r := CharRecipe{
+		Length: 4,      // Password will be 4 characters long
+		Allow:  Digits, // and comprised of digits
+	}
+	pwd, _ := r.Generate() // In real code, you would check error
+	fmt.Println(pwd)
+}
+
+func ExampleCharRecipe_default() {
+	r := NewCharRecipe(15) // 15 character passwords
+
+	// Let's generate 5 passwords to get a small taste of them
+	for i := 0; i < 5; i++ {
+		p, _ := r.Generate() // You'd check for errors in real code
+		fmt.Printf("Password: %q\tEntropy: %.3f\n", p, p.Entropy)
+	}
+}
+
+func ExampleCharRecipe_lowerdigits() {
+	r := CharRecipe{
+		Length:  17,              // Password will be 17 characters long
+		Allow:   Lowers | Digits, // and may contain lowercase letters and digits
+		Exclude: Ambiguous,       // but no ambiguous characters
+	}
+
+	// Let's generate five of them for a small sample
+	for i := 0; i < 5; i++ {
+		p, _ := r.Generate() // You would check error in real code
+		fmt.Printf("Password: %q\tEntropy: %.3f\n", p, p.Entropy)
+	}
+}
+
+// This will run the CharRecipe examples if the -v flat is passed
+// to go test
+func TestExampleCharRecipe(t *testing.T) {
+	if !testing.Verbose() {
+		return
+	}
+	ExampleCharRecipe_default()
+	ExampleCharRecipe_pin()
+	ExampleCharRecipe_lowerdigits()
 }
