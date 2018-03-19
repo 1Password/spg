@@ -18,14 +18,14 @@ type WLRecipe struct {
 // CapScheme is for an enumeration of capitalization schemes
 type CapScheme string
 
-// Capitalization schemes for wordlist (and syllable lists)
-// (Using strings instead of ints makes for more useful error messages)
+// Defined capitalization schemes. (Using strings instead of int enum
+// to make life easier in a debugger and calling from JavaScript)
 const (
-	CSNone   = "none"   // No words will be capitalized
-	CSFirst  = "first"  // First word will be capitalized
-	CSAll    = "all"    // All words will be capitalized
-	CSRandom = "random" // Some words (roughly half) will be capitalized
-	CSOne    = "one"    // One randomly selected word will be capitalized
+	CSNone   CapScheme = "none"   // No words will be capitalized
+	CSFirst  CapScheme = "first"  // First word will be capitalized
+	CSAll    CapScheme = "all"    // All words will be capitalized
+	CSRandom CapScheme = "random" // Some words (roughly half) will be capitalized
+	CSOne    CapScheme = "one"    // One randomly selected word will be capitalized
 )
 
 // NewWLRecipe sets up word list password attributes with defaults and Length length

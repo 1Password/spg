@@ -100,12 +100,12 @@ func (r CharRecipe) Entropy() float32 {
 
 // CharRecipe are generator attributes relevent for character list generation
 //
-// Allow - Characters from these sets may appear in the generated password.
+// Allow - Any character from any of these sets may be present in generated password.
 //
-// Exclude - Characters from these sets must not appear in the generated password.
+// Exclude - No characters from any of these sets may be present in the generated password.
 // Exclusion overrides Include and Allow.
 //
-// Include - At least one character from each of these sets must appear in the generated password.
+// Include - At least one character from each of these sets must be present in the generated password.
 type CharRecipe struct {
 	Length int // Length of generated password in characters
 
