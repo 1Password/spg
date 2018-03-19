@@ -9,94 +9,100 @@ func TestTokenizer(t *testing.T) {
 
 	type tokenVec struct {
 		Pwd        Password
-		expectedTI TokenIndices
+		expectedTI Indices
+		expectedPW string
 	}
 	vecs := []tokenVec{}
 
 	vecs = append(vecs, tokenVec{
 		Pwd: Password{
-			Tokens: []Token{
-				{"correct", AtomTokenType},
-				{" ", SeparatorTokenType},
-				{"horse", AtomTokenType},
-				{" ", SeparatorTokenType},
-				{"battery", AtomTokenType},
-				{" ", SeparatorTokenType},
-				{"staple", AtomTokenType},
+			tokens: Tokens{
+				{"correct", AtomType},
+				{" ", SeparatorType},
+				{"horse", AtomType},
+				{" ", SeparatorType},
+				{"battery", AtomType},
+				{" ", SeparatorType},
+				{"staple", AtomType},
 			},
 			Entropy: 44.0,
 		},
-		expectedTI: TokenIndices{
-			byte(AlternatingTIIndexKind),
+		expectedTI: Indices{
+			byte(AlternatingIndexKind),
 			7, 1, 5, 1, 7, 1, 6,
 		},
+		expectedPW: "correct horse battery staple",
 	})
 
 	vecs = append(vecs, tokenVec{
 		Pwd: Password{
-			Tokens: []Token{
-				{"correct", AtomTokenType},
-				{" ", SeparatorTokenType},
-				{"horse", AtomTokenType},
-				{" ", SeparatorTokenType},
-				{"battery", AtomTokenType},
-				{" ", SeparatorTokenType},
-				{"staple", AtomTokenType},
-				{" ", SeparatorTokenType},
+			tokens: Tokens{
+				{"correct", AtomType},
+				{" ", SeparatorType},
+				{"horse", AtomType},
+				{" ", SeparatorType},
+				{"battery", AtomType},
+				{" ", SeparatorType},
+				{"staple", AtomType},
+				{" ", SeparatorType},
 			},
 			Entropy: 44.0,
 		},
-		expectedTI: TokenIndices{
-			byte(FullTIIndexKind),
-			7, byte(AtomTokenType),
-			1, byte(SeparatorTokenType),
-			5, byte(AtomTokenType),
-			1, byte(SeparatorTokenType),
-			7, byte(AtomTokenType),
-			1, byte(SeparatorTokenType),
-			6, byte(AtomTokenType),
-			1, byte(SeparatorTokenType),
+		expectedTI: Indices{
+			byte(FullIndexKind),
+			7, byte(AtomType),
+			1, byte(SeparatorType),
+			5, byte(AtomType),
+			1, byte(SeparatorType),
+			7, byte(AtomType),
+			1, byte(SeparatorType),
+			6, byte(AtomType),
+			1, byte(SeparatorType),
 		},
+		expectedPW: "correct horse battery staple ",
 	})
 
 	vecs = append(vecs, tokenVec{
 		Pwd: Password{
-			Tokens: []Token{
-				{"P", AtomTokenType},
-				{"@", AtomTokenType},
-				{"s", AtomTokenType},
-				{"s", AtomTokenType},
-				{"w", AtomTokenType},
-				{"0", AtomTokenType},
-				{"r", AtomTokenType},
-				{"d", AtomTokenType},
-				{"1", AtomTokenType},
+			tokens: Tokens{
+				{"P", AtomType},
+				{"@", AtomType},
+				{"s", AtomType},
+				{"s", AtomType},
+				{"w", AtomType},
+				{"0", AtomType},
+				{"r", AtomType},
+				{"d", AtomType},
+				{"1", AtomType},
 			},
 			Entropy: 14.0,
 		},
-		expectedTI: TokenIndices{byte(CharacterTIIndexKind)},
+		expectedTI: Indices{byte(CharacterIndexKind)},
+		expectedPW: "P@ssw0rd1",
 	})
 
 	vecs = append(vecs, tokenVec{
 		Pwd: Password{
-			Tokens: []Token{
-				{"correct", AtomTokenType},
-				{"horse", AtomTokenType},
-				{"battery", AtomTokenType},
-				{"staple", AtomTokenType},
+			tokens: Tokens{
+				{"correct", AtomType},
+				{"horse", AtomType},
+				{"battery", AtomType},
+				{"staple", AtomType},
 			},
 			Entropy: 44.0,
 		},
-		expectedTI: TokenIndices{
-			byte(VarAtomsTIIndexKind),
+		expectedTI: Indices{
+			byte(VarAtomsIndexKind),
 			7, 5, 7, 6,
 		},
+		expectedPW: "correcthorsebatterystaple",
 	})
 
 	for _, tVec := range vecs {
 
 		tP := tVec.Pwd
-		ti, err := tP.TIndices()
+		ts := tVec.Pwd.Tokens()
+		ti, err := ts.MakeIndices()
 		if err != nil {
 			t.Errorf("failed to create token indices: %v", err)
 		}
@@ -105,6 +111,9 @@ func TestTokenizer(t *testing.T) {
 		}
 		pw := tP.String()
 		ent := tP.Entropy
+		if pw != tVec.expectedPW {
+			t.Errorf("pw is %q. Expected %q", pw, tVec.expectedPW)
+		}
 
 		newP, err := Tokenize(pw, ti, ent)
 		if err != nil {
@@ -113,17 +122,17 @@ func TestTokenizer(t *testing.T) {
 		if newP.String() != pw {
 			t.Errorf("%q should equal %q", newP.String(), pw)
 		}
-		if len(newP.Tokens) != len(tP.Tokens) {
+		if len(newP.tokens) != len(tP.tokens) {
 			t.Errorf("tokens lengths don't match:\n\tOriginal: %v\n\tReconstructed: %v",
-				tP.Tokens, newP.Tokens)
+				tP.Tokens(), newP.Tokens())
 		} else { // only run this test if lengths are equal
-			nt := newP.Tokens
-			for i, tok := range tP.Tokens {
-				if tok.Value != nt[i].Value {
-					t.Errorf("%d-th tokens Values don't match: %q != %q", i, tok.Value, nt[i].Value)
+			nt := newP.Tokens()
+			for i, tok := range ts {
+				if tok.Value() != nt[i].Value() {
+					t.Errorf("%d-th tokens Values don't match: %q != %q", i, tok.Value(), nt[i].Value())
 				}
-				if tok.Type != nt[i].Type {
-					t.Errorf("%d-th tokens Types don't match: %d != %d", i, tok.Type, nt[i].Type)
+				if tok.Type() != nt[i].Type() {
+					t.Errorf("%d-th tokens Types don't match: %d != %d", i, tok.Type(), nt[i].Type())
 				}
 			}
 		}

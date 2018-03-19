@@ -19,7 +19,7 @@ func TestGeneratorInterface(t *testing.T) {
 
 	g = createSizeFourGenerator("words")
 	p, _ = g.Generate()
-	if len(p.Atoms()) != 4 {
+	if len(p.Tokens().Atoms()) != 4 {
 		t.Errorf("Could not create a word passsword using the Generator interface: %s", p.String())
 	}
 }
@@ -32,7 +32,6 @@ func createSizeFourGenerator(name string) Generator {
 		return r
 	}
 
-	r := NewCharRecipe(4)
-	r.Lowers = CIAllow
+	r := &CharRecipe{Length: 4, Allow: Lowers}
 	return r
 }

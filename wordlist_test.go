@@ -115,7 +115,7 @@ func TestWLGenerator(t *testing.T) {
 		t.Errorf("failed to create WL generator: %v", err)
 	}
 
-	p, err = WLRecipe{Length: 100, WordList: threeG}.Generate()
+	p, err = WLRecipe{Length: 100, list: threeG}.Generate()
 	ent = p.Entropy
 	const expectedEnt = float32(158.496250) // 100 * log2(3). Calculated with something other than go
 	if err != nil {

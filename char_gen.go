@@ -2,19 +2,47 @@ package spg
 
 import (
 	"fmt"
-	"reflect"
+	"sort"
 	"strings"
 )
 
 // Character types for Character and Separator generation
 const ( // character types
-	CTUpper      = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	CTLower      = "abcdefghijklmnopqrstuvwxyz"
-	CTDigits     = "0123456789"
-	CTAmbiguous  = "0O1Il5S"
-	CTSymbols    = "!#%)*+,-.:=>?@]^_}~"
-	CTWhiteSpace = " \t"
+	ctUpper     = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	ctLower     = "abcdefghijklmnopqrstuvwxyz"
+	ctDigits    = "0123456789"
+	ctAmbiguous = "0O1Il5S"
+	ctSymbols   = "!#%)*+,-.:=>?@]^_}~"
 )
+
+// CTFlag is the type for the be
+type CTFlag uint32
+
+// Character type flags
+const (
+	// Character types useful for Allow and Include
+	Uppers CTFlag = 1 << iota
+	Lowers
+	Digits
+	Symbols
+
+	// Character types useful for Exclude
+	Ambiguous
+
+	// Named combinations
+	None    CTFlag = 0
+	Letters        = Uppers | Lowers
+	All            = Letters | Digits | Symbols
+)
+
+// charTypesByFlag
+var charTypeByFlag = map[CTFlag]string{
+	Uppers:    ctUpper,
+	Lowers:    ctLower,
+	Digits:    ctDigits,
+	Symbols:   ctSymbols,
+	Ambiguous: ctAmbiguous,
+}
 
 /*** Character type passwords ***/
 
@@ -29,12 +57,12 @@ func (r CharRecipe) Generate() (*Password, error) {
 	p := &Password{}
 	chars := r.buildCharacterList()
 
-	toks := make([]Token, r.Length)
+	tokens := make([]Token, r.Length)
 	for i := 0; i < r.Length; i++ {
-		c := chars[Int31n(uint32(len(chars)))]
-		toks[i] = Token{c, AtomTokenType}
+		c := chars[int31n(uint32(len(chars)))]
+		tokens[i] = Token{c, AtomType}
 	}
-	p.Tokens = toks
+	p.tokens = tokens
 	p.Entropy = r.Entropy()
 	return p, nil
 }
@@ -45,25 +73,21 @@ func (r CharRecipe) Generate() (*Password, error) {
 // there are no duplicates
 func (r CharRecipe) buildCharacterList() []string {
 
-	v := reflect.ValueOf(r)
-
-	ab := r.IncludeExtra
-	exclude := r.ExcludeExtra
-	for fname, s := range fieldNamesAlphabets {
-		f := v.FieldByName(fname)
-		switch f.Interface().(CharInclusion) {
-		case CIRequire:
-			// fmt.Printf("%q not implemented. Will treat %q as %q\n", CIRequire, fname, CIAllow)
-			fallthrough
-		case CIAllow:
-			ab += s
-		case CIExclude:
-			exclude += s
-		case CIUnstated: // nothing to do
-		default:
-			fmt.Printf("%q not known. Will treat %q as %q\n", f.Interface(), fname, CIUnstated)
+	ab := r.AllowChars
+	exclude := r.ExcludeChars
+	for f, ct := range charTypeByFlag {
+		if r.Allow&f != 0 {
+			ab += ct
+		}
+		// Treat Include as Allow for now
+		if r.Include&f != 0 {
+			ab += ct
+		}
+		if r.Exclude&f != 0 {
+			exclude += ct
 		}
 	}
+
 	alphabet := subtractString(ab, exclude)
 	return strings.Split(alphabet, "")
 }
@@ -74,54 +98,48 @@ func (r CharRecipe) Entropy() float32 {
 	return float32(entropySimple(r.Length, size))
 }
 
-// CharInclusion holds the inclusion/exclusion value for some character class
-type CharInclusion int
-
-// CI{Included,Required,Excluded,Unstated} indicate how some class of characters (such as digts)
-// are to be included (or not) in the generated password
-const (
-	CIUnstated = iota // Not included by this statement, but not excluded either
-	CIAllow           // Allowed in the generated password
-	CIRequire         // At least one of these must be in each generated password
-	CIExclude         // None of these may appear in a generated password
-)
-
 // CharRecipe are generator attributes relevent for character list generation
+//
+// Allow - Any character from any of these sets may be present in generated password.
+//
+// Exclude - No characters from any of these sets may be present in the generated password.
+// Exclusion overrides Include and Allow.
+//
+// Include - At least one character from each of these sets must be present in the generated password.
 type CharRecipe struct {
-	Length       int           // Length of generated password in characters
-	Uppers       CharInclusion // Uppercase letters, [A-Z] may be included in password
-	Lowers       CharInclusion // Lowercase letters, [a-z] may be included in password
-	Digits       CharInclusion // Digits [0-9] may be included in password
-	Symbols      CharInclusion // Symbols, punctuation characters may be included in password
-	Ambiguous    CharInclusion // Ambiguous characters (such as "I" and "1") are to be excluded from password
-	ExcludeExtra string        // Specific characters caller may want excluded
-	IncludeExtra string        // Specific characters caller may want excluded (this is where to put emojis. Please don't)
-}
+	Length int // Length of generated password in characters
 
-// We need a way to map certain field names to the alphabets they correspond to
-// I got worried about keeping this in sync with CharRecipe, so there's a test
-// for that.
-var fieldNamesAlphabets = map[string]string{
-	"Uppers":    CTUpper,
-	"Lowers":    CTLower,
-	"Digits":    CTDigits,
-	"Symbols":   CTSymbols,
-	"Ambiguous": CTAmbiguous,
+	// Character types to Allow, Include (require), or Exclude in generated password
+	Allow   CTFlag // Types which may appear
+	Include CTFlag // Types which must appear (at least one from each type)
+	Exclude CTFlag // Types must not appear
+
+	// User provided character sets for Allow, Include, and Exclude
+	AllowChars   string   // Specific characters that may appear
+	IncludeSets  []string // Not yet implemented
+	ExcludeChars string   // Specific characters that must not appear
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
-// more structure
+// Defaults are
+//    r.Allow = Letters | Digits | Symbols
+//    r.Exclude = Ambiguous
+// And these may need to be cleared if you want to tinker with them
 func NewCharRecipe(length int) *CharRecipe {
 
 	r := new(CharRecipe)
 	r.Length = length
 
-	r.Ambiguous = CIExclude
-
-	r.Digits = CIAllow
-	r.Uppers = CIAllow
-	r.Lowers = CIAllow
-	r.Symbols = CIAllow
+	r.Allow = Letters | Digits | Symbols
+	r.Exclude = Ambiguous
 
 	return r
+}
+
+// Alphabet returns a sorted string of the characters that are
+// drawn from in a given recipe, r
+func (r CharRecipe) Alphabet() string {
+	s := r.buildCharacterList()
+	sort.Strings(s)
+	return strings.Join(s, "")
 }

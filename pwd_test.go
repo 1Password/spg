@@ -1,8 +1,8 @@
 package spg
 
 import (
+	"fmt"
 	"math"
-	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -56,17 +56,14 @@ func TestDigitGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("%q did not compile: %v", v.re, err)
 		}
-		r := NewCharRecipe(12)
+		r := &CharRecipe{Length: 12}
 
 		// Starting with digits-only
-		r.Ambiguous = CIUnstated
-		r.Digits = CIRequire
-		r.Lowers = CIUnstated
-		r.Uppers = CIUnstated
-		r.Symbols = CIUnstated
+		r.Allow = 0 | Digits
+		r.Exclude = 0 // Don't exclude ambiguous
 
-		r.ExcludeExtra = v.exc
-		r.IncludeExtra = v.inc
+		r.ExcludeChars = v.exc
+		r.AllowChars = v.inc
 
 		for i := 1; i <= 20; i++ {
 			p, err := r.Generate()
@@ -86,12 +83,11 @@ func TestDigitGenerator(t *testing.T) {
 
 func TestNonASCII(t *testing.T) {
 	length := 10
-	r := NewCharRecipe(length)
-	r.Digits = CIUnstated
-	r.Uppers = CIUnstated
-	r.Lowers = CIUnstated
-	r.Symbols = CIUnstated
-	r.IncludeExtra = "űβ™λ∞⊕💩"
+	r := &CharRecipe{
+		Length:     length,
+		Allow:      0,
+		AllowChars: "űβ™λ∞⊕💩",
+	}
 	expectedEnt := float32(math.Log2(7.0) * float64(length))
 
 	for i := 0; i < 20; i++ {
@@ -110,41 +106,6 @@ func TestNonASCII(t *testing.T) {
 		}
 	}
 
-}
-
-func TestCIFieldNames(t *testing.T) {
-	a := NewCharRecipe(10)
-	fromR := make(map[string]bool)
-
-	// It finds all of the fields of CharInclusion, and builds a map with the
-	// names fo those fields.
-	// This is adapted from [crap, I'd need to copy the URL from a different computer]
-	v := reflect.ValueOf(a).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		f := v.Field(i)
-		n := v.Type().Field(i).Name
-		t := f.Type().String()
-		if strings.HasSuffix(t, "CharInclusion") {
-			// fmt.Printf("Name: %s\tType: %s\n", n, t)
-			fromR[n] = true
-		}
-	}
-
-	if len(fromR) > len(fieldNamesAlphabets) {
-		t.Errorf("CharRecipe has more (%d) CharInclusion fields than listed in fieldNamesAlphabets (%d)",
-			len(fromR), len(fieldNamesAlphabets))
-	}
-
-	if len(fromR) < len(fieldNamesAlphabets) {
-		t.Errorf("CharRecipe has fewer (%d) CharInclusion fields than listed in fieldNamesAlphabets (%d)",
-			len(fromR), len(fieldNamesAlphabets))
-	}
-
-	for name := range fieldNamesAlphabets {
-		if !fromR[name] {
-			t.Errorf("%q does not exist in CharRecipe", name)
-		}
-	}
 }
 
 // cmpFloat32 compares floats to 1 part in tolerance
@@ -191,4 +152,50 @@ func cmpFloat(a, b float64, tolerance int) int {
 		return -1
 	}
 	return 1
+}
+
+// Examples
+// Because these have random output, we can't use "Output:",
+func ExampleCharRecipe_pin() {
+	r := CharRecipe{
+		Length: 4,      // Password will be 4 characters long
+		Allow:  Digits, // and comprised of digits
+	}
+	pwd, _ := r.Generate() // In real code, you would check error
+	fmt.Println(pwd)
+}
+
+func ExampleCharRecipe_default() {
+	r := NewCharRecipe(15) // 15 character passwords
+
+	// Let's generate 5 passwords to get a small taste of them
+	for i := 0; i < 5; i++ {
+		p, _ := r.Generate() // You'd check for errors in real code
+		fmt.Printf("Password: %q\tEntropy: %.3f\n", p, p.Entropy)
+	}
+}
+
+func ExampleCharRecipe_lowerdigits() {
+	r := CharRecipe{
+		Length:  17,              // Password will be 17 characters long
+		Allow:   Lowers | Digits, // and may contain lowercase letters and digits
+		Exclude: Ambiguous,       // but no ambiguous characters
+	}
+
+	// Let's generate five of them for a small sample
+	for i := 0; i < 5; i++ {
+		p, _ := r.Generate() // You would check error in real code
+		fmt.Printf("Password: %q\tEntropy: %.3f\n", p, p.Entropy)
+	}
+}
+
+// This will run the CharRecipe examples if the -v flat is passed
+// to go test
+func TestExampleCharRecipe(t *testing.T) {
+	if !testing.Verbose() {
+		return
+	}
+	ExampleCharRecipe_default()
+	ExampleCharRecipe_pin()
+	ExampleCharRecipe_lowerdigits()
 }

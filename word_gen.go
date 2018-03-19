@@ -8,7 +8,7 @@ import (
 
 // WLRecipe (Word List password Attributes) are the generator settings for wordlist (syllable list) passwords
 type WLRecipe struct {
-	*WordList                // Set of words for generating passwords
+	list          *WordList  // Set of words for generating passwords
 	Length        int        // Length of generated password in words
 	SeparatorChar string     // What character(s) should separate words
 	SeparatorFunc SFFunction // function to generate separators, If nil just use SeperatorChar
@@ -18,14 +18,14 @@ type WLRecipe struct {
 // CapScheme is for an enumeration of capitalization schemes
 type CapScheme string
 
-// Capitalization schemes for wordlist (and syllable lists)
-// (Using strings instead of ints makes for more useful error messages)
+// Defined capitalization schemes. (Using strings instead of int enum
+// to make life easier in a debugger and calling from JavaScript)
 const (
-	CSNone   = "none"   // No words will be capitalized
-	CSFirst  = "first"  // First word will be capitalized
-	CSAll    = "all"    // All words will be capitalized
-	CSRandom = "random" // Some words (roughly half) will be capitalized
-	CSOne    = "one"    // One randomly selected word will be capitalized
+	CSNone   CapScheme = "none"   // No words will be capitalized
+	CSFirst  CapScheme = "first"  // First word will be capitalized
+	CSAll    CapScheme = "all"    // All words will be capitalized
+	CSRandom CapScheme = "random" // Some words (roughly half) will be capitalized
+	CSOne    CapScheme = "one"    // One randomly selected word will be capitalized
 )
 
 // NewWLRecipe sets up word list password attributes with defaults and Length length
@@ -33,7 +33,7 @@ func NewWLRecipe(length int, wl *WordList) *WLRecipe {
 	attrs := &WLRecipe{
 		Length:     length,
 		Capitalize: CSNone,
-		WordList:   wl,
+		list:       wl,
 	}
 	return attrs
 }
@@ -41,6 +41,11 @@ func NewWLRecipe(length int, wl *WordList) *WLRecipe {
 // WordList contains the list of words WLGenerator()
 type WordList struct {
 	words []string
+}
+
+// Size of the wordlist in the recipe
+func (r WLRecipe) Size() uint32 {
+	return r.list.Size()
 }
 
 // Size returns the number of items in the generator's wordlist or the maxiumum uint32, whichever is smaller
@@ -116,11 +121,11 @@ func (r WLRecipe) Generate() (*Password, error) {
 	case CSFirst:
 		capWords[0] = true
 	case CSOne:
-		w := int(Int31n(uint32(r.Length)))
+		w := int(int31n(uint32(r.Length)))
 		capWords[w] = true
 	case CSRandom:
 		for i := 1; i <= r.Length; i++ {
-			if Int31n(2) == 1 {
+			if int31n(2) == 1 {
 				capWords[i] = true
 			}
 		}
@@ -130,24 +135,24 @@ func (r WLRecipe) Generate() (*Password, error) {
 		}
 	}
 
-	toks := []Token{}
+	ts := []Token{}
 	for i := 0; i < r.Length; i++ {
-		w := r.words[Int31n(uint32(r.Size()))]
+		w := r.list.words[int31n(uint32(r.Size()))]
 
 		if capWords[i] {
 			w = strings.Title(w)
 		}
 		if len(w) > 0 {
-			toks = append(toks, Token{w, AtomTokenType})
+			ts = append(ts, Token{w, AtomType})
 		}
 		if i < r.Length-1 {
 			sep, _ := sf()
 			if len(sep) > 0 {
-				toks = append(toks, Token{sep, SeparatorTokenType})
+				ts = append(ts, Token{sep, SeparatorType})
 			}
 		}
 	}
-	p.Tokens = toks
+	p.tokens = ts
 	p.Entropy = r.Entropy()
 	return p, nil
 }
@@ -193,23 +198,23 @@ type SFFunction func() (string, float64)
 func SFNone() (string, float64) { return "", 0.0 }
 
 // SFDigits1 each separator is a randomly chosen digit
-func SFDigits1() (string, float64) { return nFromString(CTDigits, 1) }
+func SFDigits1() (string, float64) { return nFromString(ctDigits, 1) }
 
 // SFDigits2 each separator is two randomly chosen digits
-func SFDigits2() (string, float64) { return nFromString(CTDigits, 2) }
+func SFDigits2() (string, float64) { return nFromString(ctDigits, 2) }
 
 // SFDigitsNoAmbiguous1 each separator is a non-ambiguous digit
 func SFDigitsNoAmbiguous1() (string, float64) {
-	return nFromString(subtractString(CTDigits, CTAmbiguous), 1)
+	return nFromString(subtractString(ctDigits, ctAmbiguous), 1)
 }
 
 // SFDigitsNoAmbiguous2 each separator is a pair of randomly chosen non-ambiguous digits
 func SFDigitsNoAmbiguous2() (string, float64) {
-	return nFromString(subtractString(CTDigits, CTAmbiguous), 2)
+	return nFromString(subtractString(ctDigits, ctAmbiguous), 2)
 }
 
 // SFSymbols each separator is a randomly chosen symbol
-func SFSymbols() (string, float64) { return nFromString(CTSymbols, 1) }
+func SFSymbols() (string, float64) { return nFromString(ctSymbols, 1) }
 
 // SFDigitsSymbols each separator is a randomly chosen digit or symbol
-func SFDigitsSymbols() (string, float64) { return nFromString(CTSymbols+CTDigits, 1) }
+func SFDigitsSymbols() (string, float64) { return nFromString(ctSymbols+ctDigits, 1) }
