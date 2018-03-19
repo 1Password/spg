@@ -56,23 +56,6 @@ func (p Password) tokensOfType(tType TokenType) []string {
 	return ret
 }
 
-// Atoms returns the tokens (words, syllables, characters) that compromise the bulk of the password
-func (p Password) Atoms() []string { return p.tokensOfType(AtomTokenType) }
-
-// Separators are the separators between tokens.
-// If this list is shorter than one less then the number of tokens, the last separator listed
-// is used repeatedly to separate subsequent tokens.
-// If this is nil, it is taken as nil no separators between tokens
-func (p Password) Separators() []string { return p.tokensOfType(SeparatorTokenType) }
-
-// String is the Stringer. It produces the password as string one might expect
-func (p Password) String() string {
-	pw := ""
-	for _, tok := range p.Tokens {
-		pw += tok.Value
-	}
-	return pw
-}
 
 // TokenIndices can hold the indices needed to reconstruct tokens, separator from string
 type TokenIndices []byte
