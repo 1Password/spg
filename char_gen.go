@@ -20,7 +20,7 @@ type CTFlag uint32
 
 // Character type flags
 const (
-	// Character types useful for Allow and Require
+	// Character types useful for Include and Require
 	Uppers CTFlag = 1 << iota
 	Lowers
 	Digits
@@ -76,10 +76,10 @@ func (r CharRecipe) buildCharacterList() []string {
 	ab := r.IncludeExtra
 	exclude := r.ExcludeExtra
 	for f, ct := range charTypeByFlag {
-		if r.Allow&f != 0 {
+		if r.Include&f != 0 {
 			ab += ct
 		}
-		// Treat Require as Allow for now
+		// Treat Require as Include for now
 		if r.Require&f != 0 {
 			ab += ct
 		}
@@ -101,7 +101,7 @@ func (r CharRecipe) Entropy() float32 {
 // CharRecipe are generator attributes relevent for character list generation
 type CharRecipe struct {
 	Length       int    // Length of generated password in characters
-	Allow        CTFlag // Flags for which character types to allow
+	Include      CTFlag // Flags for which character types to allow
 	Require      CTFlag // Flags for which character types to require
 	Exclude      CTFlag // Flags for which character types to exclude
 	ExcludeExtra string // Specific characters caller may want excluded
@@ -110,7 +110,7 @@ type CharRecipe struct {
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
 // Defaults are
-//    r.Allow = Letters | Digits | Symbols
+//    r.Include = Letters | Digits | Symbols
 //    r.Exclude = Ambiguous
 // And these may need to be cleared if you want to tinker with them
 // This function exists only as a parallel to NewWLRecipe. It probably makes sense
@@ -120,7 +120,7 @@ func NewCharRecipe(length int) *CharRecipe {
 	r := new(CharRecipe)
 	r.Length = length
 
-	r.Allow = Letters | Digits | Symbols
+	r.Include = Letters | Digits | Symbols
 	r.Exclude = Ambiguous
 
 	return r

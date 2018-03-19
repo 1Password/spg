@@ -32,6 +32,6 @@ func createSizeFourGenerator(name string) Generator {
 		return r
 	}
 
-	r := &CharRecipe{Length: 4, Allow: Lowers}
+	r := &CharRecipe{Length: 4, Include: Lowers}
 	return r
 }
