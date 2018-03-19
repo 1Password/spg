@@ -202,7 +202,7 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 		for _, c := range chars {
 			toks = append(toks, Token{c, AtomTokenType})
 		}
-		p.Tokens = toks
+		p.tokens = toks
 		return p, nil
 
 	case VarAtomsTIIndexKind:
@@ -217,7 +217,7 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 			toks[i] = Token{v, AtomTokenType}
 			prevPos = newPos
 		}
-		p.Tokens = toks
+		p.tokens = toks
 		return p, nil
 
 	case AlternatingTIIndexKind:
@@ -237,7 +237,7 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 			toks[i] = Token{v, tt}
 			prevPos = newPos
 		}
-		p.Tokens = toks
+		p.tokens = toks
 		return p, nil
 
 	case FullTIIndexKind:
@@ -255,7 +255,7 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 			toks[i/2] = Token{v, TokenType(tt)}
 			prevPos = newPos
 		}
-		p.Tokens = toks
+		p.tokens = toks
 		return p, nil
 	default:
 		return p, fmt.Errorf("Unknown TIIndex kind: %d", kind)

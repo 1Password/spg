@@ -16,7 +16,7 @@ func TestTokenizer(t *testing.T) {
 
 	vecs = append(vecs, tokenVec{
 		Pwd: Password{
-			Tokens: []Token{
+			tokens: Tokens{
 				{"correct", AtomTokenType},
 				{" ", SeparatorTokenType},
 				{"horse", AtomTokenType},
@@ -36,7 +36,7 @@ func TestTokenizer(t *testing.T) {
 
 	vecs = append(vecs, tokenVec{
 		Pwd: Password{
-			Tokens: []Token{
+			tokens: Tokens{
 				{"correct", AtomTokenType},
 				{" ", SeparatorTokenType},
 				{"horse", AtomTokenType},
@@ -64,7 +64,7 @@ func TestTokenizer(t *testing.T) {
 
 	vecs = append(vecs, tokenVec{
 		Pwd: Password{
-			Tokens: []Token{
+			tokens: Tokens{
 				{"P", AtomTokenType},
 				{"@", AtomTokenType},
 				{"s", AtomTokenType},
@@ -83,7 +83,7 @@ func TestTokenizer(t *testing.T) {
 
 	vecs = append(vecs, tokenVec{
 		Pwd: Password{
-			Tokens: []Token{
+			tokens: Tokens{
 				{"correct", AtomTokenType},
 				{"horse", AtomTokenType},
 				{"battery", AtomTokenType},
@@ -101,7 +101,8 @@ func TestTokenizer(t *testing.T) {
 	for _, tVec := range vecs {
 
 		tP := tVec.Pwd
-		ti, err := tP.TIndices()
+		ts := tVec.Pwd.tokens
+		ti, err := ts.TIndices()
 		if err != nil {
 			t.Errorf("failed to create token indices: %v", err)
 		}
@@ -121,12 +122,12 @@ func TestTokenizer(t *testing.T) {
 		if newP.String() != pw {
 			t.Errorf("%q should equal %q", newP.String(), pw)
 		}
-		if len(newP.Tokens) != len(tP.Tokens) {
+		if len(newP.tokens) != len(tP.tokens) {
 			t.Errorf("tokens lengths don't match:\n\tOriginal: %v\n\tReconstructed: %v",
-				tP.Tokens, newP.Tokens)
+				tP.tokens, newP.tokens)
 		} else { // only run this test if lengths are equal
-			nt := newP.Tokens
-			for i, tok := range tP.Tokens {
+			nt := newP.tokens
+			for i, tok := range ts {
 				if tok.Value() != nt[i].Value() {
 					t.Errorf("%d-th tokens Values don't match: %q != %q", i, tok.Value(), nt[i].Value())
 				}

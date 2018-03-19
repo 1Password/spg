@@ -62,7 +62,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 		c := chars[Int31n(uint32(len(chars)))]
 		tokens[i] = Token{c, AtomTokenType}
 	}
-	p.Tokens = tokens
+	p.tokens = tokens
 	p.Entropy = r.Entropy()
 	return p, nil
 }
