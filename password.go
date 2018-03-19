@@ -23,13 +23,13 @@ type Generator interface {
 func (p Password) Tokens() Tokens { return p.tokens }
 
 // Atoms returns the tokens (words, syllables, characters) that compromise the bulk of the password
-func (p Password) Atoms() []string { return p.tokens.tokensOfType(AtomTokenType) }
+func (p Password) Atoms() []string { return p.tokens.tokensOfType(AtomType) }
 
 // Separators are the separators between tokens.
 // If this list is shorter than one less then the number of tokens, the last separator listed
 // is used repeatedly to separate subsequent tokens.
 // If this is nil, it is taken as nil no separators between tokens
-func (p Password) Separators() []string { return p.tokens.tokensOfType(SeparatorTokenType) }
+func (p Password) Separators() []string { return p.tokens.tokensOfType(SeparatorType) }
 
 // String is the Stringer. It produces the password as string one might expect
 func (p Password) String() string {

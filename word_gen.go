@@ -143,12 +143,12 @@ func (r WLRecipe) Generate() (*Password, error) {
 			w = strings.Title(w)
 		}
 		if len(w) > 0 {
-			ts = append(ts, Token{w, AtomTokenType})
+			ts = append(ts, Token{w, AtomType})
 		}
 		if i < r.Length-1 {
 			sep, _ := sf()
 			if len(sep) > 0 {
-				ts = append(ts, Token{sep, SeparatorTokenType})
+				ts = append(ts, Token{sep, SeparatorType})
 			}
 		}
 	}

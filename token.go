@@ -12,19 +12,19 @@ type TokenType uint8
 
 // For labelling tokens within a generated password
 const (
-	SeparatorTokenType TokenType = iota
-	AtomTokenType
+	SeparatorType TokenType = iota
+	AtomType
 )
 
 /*
 Token is a unit within a generated password.
 In "correct horse battery" there are five tokens
     []Token{
-		{Value: "correct", Type: AtomTokenType},
-		{Value: " ", Type: SeparatorTokenType},
-		{Value: "horse", Type: AtomTokenType},
-		{Value: " ", Type: SeparatorTokenType},
-		{Value: "battery", Type: AtomTokenType},
+		{Value: "correct", Type: AtomType},
+		{Value: " ", Type: SeparatorType},
+		{Value: "horse", Type: AtomType},
+		{Value: " ", Type: SeparatorType},
+		{Value: "battery", Type: AtomType},
 	}
 */
 type Token struct {
@@ -166,18 +166,18 @@ func (ts Tokens) isAlternatingTokens() bool {
 	if len(types) != 2 {
 		return false
 	}
-	if !(types[AtomTokenType] && types[SeparatorTokenType]) {
+	if !(types[AtomType] && types[SeparatorType]) {
 		return false
 	}
 	for i, tok := range ts {
 		tt := tok.Type()
 		switch i % 2 {
 		case 0: // evens should be Atoms
-			if tt != AtomTokenType {
+			if tt != AtomType {
 				return false
 			}
 		case 1:
-			if tt != SeparatorTokenType {
+			if tt != SeparatorType {
 				return false
 			}
 		}
@@ -200,7 +200,7 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 		toks := Tokens{}
 		// all tokens are of type atom and are of length 1
 		for _, c := range chars {
-			toks = append(toks, Token{c, AtomTokenType})
+			toks = append(toks, Token{c, AtomType})
 		}
 		p.tokens = toks
 		return p, nil
@@ -214,7 +214,7 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 				return p, fmt.Errorf("password too short for indices")
 			}
 			v := strings.Join(chars[prevPos:newPos], "")
-			toks[i] = Token{v, AtomTokenType}
+			toks[i] = Token{v, AtomType}
 			prevPos = newPos
 		}
 		p.tokens = toks
@@ -230,9 +230,9 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 				return p, fmt.Errorf("password too short for indices")
 			}
 			v := strings.Join(chars[prevPos:newPos], "")
-			tt := AtomTokenType
+			tt := AtomType
 			if i%2 == 1 {
-				tt = SeparatorTokenType
+				tt = SeparatorType
 			}
 			toks[i] = Token{v, tt}
 			prevPos = newPos
@@ -295,4 +295,4 @@ func (ts Tokens) maxTokenLen() int {
 
 // isAllAtoms returns true when all of tokens are Atoms.
 // It returns false if there are no tokens.
-func (ts Tokens) isAllAtoms() bool { return ts.isAllOfType(AtomTokenType) }
+func (ts Tokens) isAllAtoms() bool { return ts.isAllOfType(AtomType) }
