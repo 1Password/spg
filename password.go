@@ -43,7 +43,7 @@ func (p Password) Separators() []string { return p.tokensOfType(SeparatorTokenTy
 func (p Password) String() string {
 	pw := ""
 	for _, tok := range p.Tokens {
-		pw += tok.Value
+		pw += tok.Value()
 	}
 	return pw
 }

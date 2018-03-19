@@ -119,11 +119,11 @@ func TestTokenizer(t *testing.T) {
 		} else { // only run this test if lengths are equal
 			nt := newP.Tokens
 			for i, tok := range tP.Tokens {
-				if tok.Value != nt[i].Value {
-					t.Errorf("%d-th tokens Values don't match: %q != %q", i, tok.Value, nt[i].Value)
+				if tok.Value() != nt[i].Value() {
+					t.Errorf("%d-th tokens Values don't match: %q != %q", i, tok.Value(), nt[i].Value())
 				}
-				if tok.Type != nt[i].Type {
-					t.Errorf("%d-th tokens Types don't match: %d != %d", i, tok.Type, nt[i].Type)
+				if tok.Type() != nt[i].Type() {
+					t.Errorf("%d-th tokens Types don't match: %d != %d", i, tok.Type(), nt[i].Type())
 				}
 			}
 		}

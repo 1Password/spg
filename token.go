@@ -28,8 +28,16 @@ In "correct horse battery" there are five tokens
 	}
 */
 type Token struct {
-	Value string
-	Type  TokenType
+	value string
+	tType TokenType
+}
+
+func (t Token) Value() string {
+	return t.value
+}
+
+func (t Token) Type() TokenType {
+	return t.tType
 }
 
 // TIndexKind is the kind of tokenization index.
@@ -49,13 +57,12 @@ const (
 func (p Password) tokensOfType(tType TokenType) []string {
 	ret := []string{}
 	for _, tok := range p.Tokens {
-		if tok.Type == tType {
-			ret = append(ret, tok.Value)
+		if tok.tType == tType {
+			ret = append(ret, tok.Value())
 		}
 	}
 	return ret
 }
-
 
 // TokenIndices can hold the indices needed to reconstruct tokens, separator from string
 type TokenIndices []byte
@@ -85,7 +92,7 @@ func (p Password) TIndices() (TokenIndices, error) {
 		first := TokenIndices{byte(kind)}
 		ti := make(TokenIndices, len(p.Tokens))
 		for i, tok := range p.Tokens {
-			v := tok.Value
+			v := tok.Value()
 			lng := len(v)
 			if lng > math.MaxUint8 {
 				return nil, fmt.Errorf("token too large (%d)", lng)
@@ -103,9 +110,9 @@ func (p Password) TIndices() (TokenIndices, error) {
 		ti := make(TokenIndices, 2*len(p.Tokens))
 
 		for i, tok := range p.Tokens {
-			v := tok.Value
+			v := tok.Value()
 			lng := len(v)
-			tt := tok.Type
+			tt := tok.Type()
 			if lng > math.MaxUint8 {
 				return nil, fmt.Errorf("token too large (%d)", lng)
 			}
@@ -155,13 +162,14 @@ func (p Password) isAlternatingTokens() bool {
 		return false
 	}
 	for i, tok := range toks {
+		tt := tok.Type()
 		switch i % 2 {
 		case 0: // evens should be Atoms
-			if tok.Type != AtomTokenType {
+			if tt != AtomTokenType {
 				return false
 			}
 		case 1:
-			if tok.Type != SeparatorTokenType {
+			if tt != SeparatorTokenType {
 				return false
 			}
 		}
@@ -250,7 +258,7 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 func (p Password) TokenTypes() map[TokenType]bool {
 	found := make(map[TokenType]bool)
 	for _, tok := range p.Tokens {
-		found[tok.Type] = true
+		found[tok.Type()] = true
 	}
 	return found
 }
@@ -267,8 +275,9 @@ func (p Password) isAllOfType(tt TokenType) bool {
 func (p Password) maxTokenLen() int {
 	max := 0
 	for _, t := range p.Tokens {
-		if len(t.Value) > max {
-			max = len(t.Value)
+		l := len(t.Value())
+		if l > max {
+			max = l
 		}
 	}
 	return max
