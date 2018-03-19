@@ -134,7 +134,11 @@ func (ts Tokens) MakeIndices() (Indices, error) {
 }
 
 // Kind looks at the tokens and works out what the most
-// appropriate kind of token index we should use
+// appropriate kind of token index we should use.
+// It is exported in case callers would like help
+// at guessing what kind of password they have,
+// it does only provide a guess. It is no
+// substitute for the original recipe
 func (ts Tokens) Kind() IndexKind {
 
 	// It's only atoms of length one (so character password)
@@ -197,16 +201,16 @@ func Tokenize(pw string, ti Indices, entropy float32) (Password, error) {
 	kind := IndexKind(ti[0])
 	switch kind {
 	case CharacterIndexKind:
-		toks := Tokens{}
+		tokens := Tokens{}
 		// all tokens are of type atom and are of length 1
 		for _, c := range chars {
-			toks = append(toks, Token{c, AtomType})
+			tokens = append(tokens, Token{c, AtomType})
 		}
-		p.tokens = toks
+		p.tokens = tokens
 		return p, nil
 
 	case VarAtomsIndexKind:
-		toks := make([]Token, len(ti)-1)
+		tokens := make([]Token, len(ti)-1)
 		prevPos := 0
 		for i, tl := range ti[1:] {
 			newPos := prevPos + int(tl)
@@ -214,14 +218,14 @@ func Tokenize(pw string, ti Indices, entropy float32) (Password, error) {
 				return p, fmt.Errorf("password too short for indices")
 			}
 			v := strings.Join(chars[prevPos:newPos], "")
-			toks[i] = Token{v, AtomType}
+			tokens[i] = Token{v, AtomType}
 			prevPos = newPos
 		}
-		p.tokens = toks
+		p.tokens = tokens
 		return p, nil
 
 	case AlternatingIndexKind:
-		toks := make([]Token, len(ti)-1)
+		tokens := make([]Token, len(ti)-1)
 		prevPos := 0
 
 		for i, tl := range ti[1:] {
@@ -234,14 +238,14 @@ func Tokenize(pw string, ti Indices, entropy float32) (Password, error) {
 			if i%2 == 1 {
 				tt = SeparatorType
 			}
-			toks[i] = Token{v, tt}
+			tokens[i] = Token{v, tt}
 			prevPos = newPos
 		}
-		p.tokens = toks
+		p.tokens = tokens
 		return p, nil
 
 	case FullIndexKind:
-		toks := make([]Token, len(ti)/2)
+		tokens := make([]Token, len(ti)/2)
 
 		prevPos := 0
 		for i := 1; i < len(ti); i += 2 {
@@ -252,10 +256,10 @@ func Tokenize(pw string, ti Indices, entropy float32) (Password, error) {
 				return p, fmt.Errorf("password too short for indices")
 			}
 			v := strings.Join(chars[prevPos:newPos], "")
-			toks[i/2] = Token{v, TokenType(tt)}
+			tokens[i/2] = Token{v, TokenType(tt)}
 			prevPos = newPos
 		}
-		p.tokens = toks
+		p.tokens = tokens
 		return p, nil
 	default:
 		return p, fmt.Errorf("Unknown TIIndex kind: %d", kind)

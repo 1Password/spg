@@ -101,7 +101,7 @@ func TestTokenizer(t *testing.T) {
 	for _, tVec := range vecs {
 
 		tP := tVec.Pwd
-		ts := tVec.Pwd.tokens
+		ts := tVec.Pwd.Tokens()
 		ti, err := ts.MakeIndices()
 		if err != nil {
 			t.Errorf("failed to create token indices: %v", err)
@@ -124,9 +124,9 @@ func TestTokenizer(t *testing.T) {
 		}
 		if len(newP.tokens) != len(tP.tokens) {
 			t.Errorf("tokens lengths don't match:\n\tOriginal: %v\n\tReconstructed: %v",
-				tP.tokens, newP.tokens)
+				tP.Tokens(), newP.Tokens())
 		} else { // only run this test if lengths are equal
-			nt := newP.tokens
+			nt := newP.Tokens()
 			for i, tok := range ts {
 				if tok.Value() != nt[i].Value() {
 					t.Errorf("%d-th tokens Values don't match: %q != %q", i, tok.Value(), nt[i].Value())
