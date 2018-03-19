@@ -19,6 +19,9 @@ type Generator interface {
 	Entropy() float32
 }
 
+// Tokens returns the tokens
+func (p Password) Tokens() Tokens { return p.tokens }
+
 // Atoms returns the tokens (words, syllables, characters) that compromise the bulk of the password
 func (p Password) Atoms() []string { return p.tokens.tokensOfType(AtomTokenType) }
 
