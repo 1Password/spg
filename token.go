@@ -32,13 +32,18 @@ type Token struct {
 	tType TokenType
 }
 
+// Value returns the string value
 func (t Token) Value() string {
 	return t.value
 }
 
+// Type returns the token type
 func (t Token) Type() TokenType {
 	return t.tType
 }
+
+// Tokens is the array of tokens that comprise a password
+type Tokens []Token
 
 // TIndexKind is the kind of tokenization index.
 // Token indices are compact byte arrays that can be
@@ -54,9 +59,9 @@ const (
 	FullTIIndexKind                          // Requires a full token index as sequeunce of token types is not predictable
 )
 
-func (p Password) tokensOfType(tType TokenType) []string {
+func (ts Tokens) tokensOfType(tType TokenType) []string {
 	ret := []string{}
-	for _, tok := range p.Tokens {
+	for _, tok := range ts {
 		if tok.tType == tType {
 			ret = append(ret, tok.Value())
 		}
@@ -76,12 +81,12 @@ type TokenIndices []byte
 //
 // token lengths must be in (1, 255)
 //
-func (p Password) TIndices() (TokenIndices, error) {
-	if len(p.Tokens) == 0 { // We aren't in a position to calculate this
+func (ts Tokens) TIndices() (TokenIndices, error) {
+	if len(ts) == 0 { // We aren't in a position to calculate this
 		return nil, nil
 	}
 
-	kind := p.tokensKind()
+	kind := ts.tokensKind()
 	switch kind {
 	case CharacterTIIndexKind:
 		return TokenIndices{byte(kind)}, nil
@@ -90,8 +95,8 @@ func (p Password) TIndices() (TokenIndices, error) {
 		fallthrough
 	case VarAtomsTIIndexKind:
 		first := TokenIndices{byte(kind)}
-		ti := make(TokenIndices, len(p.Tokens))
-		for i, tok := range p.Tokens {
+		ti := make(TokenIndices, len(ts))
+		for i, tok := range ts {
 			v := tok.Value()
 			lng := len(v)
 			if lng > math.MaxUint8 {
@@ -107,9 +112,9 @@ func (p Password) TIndices() (TokenIndices, error) {
 
 	default:
 		first := TokenIndices{byte(FullTIIndexKind)}
-		ti := make(TokenIndices, 2*len(p.Tokens))
+		ti := make(TokenIndices, 2*len(ts))
 
-		for i, tok := range p.Tokens {
+		for i, tok := range ts {
 			v := tok.Value()
 			lng := len(v)
 			tt := tok.Type()
@@ -128,20 +133,20 @@ func (p Password) TIndices() (TokenIndices, error) {
 	}
 }
 
-func (p Password) tokensKind() TIndexKind {
+func (ts Tokens) tokensKind() TIndexKind {
 
 	// It's only atoms of length one (so character password)
-	if p.IsAllAtoms() && p.maxTokenLen() == 1 {
+	if ts.IsAllAtoms() && ts.maxTokenLen() == 1 {
 		return CharacterTIIndexKind
 	}
 
 	// Some atoms have length other than 1, so we will need
 	// lengths in our index
-	if p.IsAllAtoms() {
+	if ts.IsAllAtoms() {
 		return VarAtomsTIIndexKind
 	}
 
-	if p.isAlternatingTokens() {
+	if ts.isAlternatingTokens() {
 		return AlternatingTIIndexKind
 	}
 
@@ -149,19 +154,18 @@ func (p Password) tokensKind() TIndexKind {
 	return FullTIIndexKind
 }
 
-func (p Password) isAlternatingTokens() bool {
-	toks := p.Tokens
-	if len(toks)%2 != 1 {
+func (ts Tokens) isAlternatingTokens() bool {
+	if len(ts)%2 != 1 {
 		return false
 	}
-	types := p.TokenTypes()
+	types := ts.TokenTypes()
 	if len(types) != 2 {
 		return false
 	}
 	if !(types[AtomTokenType] && types[SeparatorTokenType]) {
 		return false
 	}
-	for i, tok := range toks {
+	for i, tok := range ts {
 		tt := tok.Type()
 		switch i % 2 {
 		case 0: // evens should be Atoms
@@ -189,7 +193,7 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 	kind := TIndexKind(ti[0])
 	switch kind {
 	case CharacterTIIndexKind:
-		toks := []Token{}
+		toks := Tokens{}
 		// all tokens are of type atom and are of length 1
 		for _, c := range chars {
 			toks = append(toks, Token{c, AtomTokenType})
@@ -255,26 +259,26 @@ func Tokenize(pw string, ti TokenIndices, entropy float32) (Password, error) {
 }
 
 // TokenTypes returns a set of all of the token types used within a password
-func (p Password) TokenTypes() map[TokenType]bool {
+func (ts Tokens) TokenTypes() map[TokenType]bool {
 	found := make(map[TokenType]bool)
-	for _, tok := range p.Tokens {
+	for _, tok := range ts {
 		found[tok.Type()] = true
 	}
 	return found
 }
 
 // isAllOfType is true when all tokens in the password are of type tt
-func (p Password) isAllOfType(tt TokenType) bool {
-	types := p.TokenTypes()
+func (ts Tokens) isAllOfType(tt TokenType) bool {
+	types := ts.TokenTypes()
 	if len(types) == 1 && types[tt] {
 		return true
 	}
 	return false
 }
 
-func (p Password) maxTokenLen() int {
+func (ts Tokens) maxTokenLen() int {
 	max := 0
-	for _, t := range p.Tokens {
+	for _, t := range ts {
 		l := len(t.Value())
 		if l > max {
 			max = l
@@ -285,4 +289,4 @@ func (p Password) maxTokenLen() int {
 
 // IsAllAtoms returns true when all of tokens are Atoms.
 // It returns false if there are no tokens
-func (p Password) IsAllAtoms() bool { return p.isAllOfType(AtomTokenType) }
+func (ts Tokens) IsAllAtoms() bool { return ts.isAllOfType(AtomTokenType) }
