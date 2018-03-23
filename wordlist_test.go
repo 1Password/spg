@@ -298,8 +298,8 @@ func TestNonLetterWL(t *testing.T) {
 
 	// Because none of the words in the wordlist capitalize, the
 	// a.Capitalize = CSOne setting makes no difference
-	trueEnt := float32(math.Log2(float64(len(cl))) * float64(length))
-	expectedEnt := trueEnt + float32(math.Log2(float64(length)))
+	expectedEnt := float32(math.Log2(float64(len(cl))) * float64(length))
+	// expectedEnt := trueEnt + float32(math.Log2(float64(length)))
 
 	for i := 0; i < 20; i++ {
 		p, err := a.Generate()
@@ -312,11 +312,12 @@ func TestNonLetterWL(t *testing.T) {
 		// This is a consequence uppercasing some words making no difference
 		if cmpFloat32(expectedEnt, ent, entCompTolerance) != 0 {
 			t.Errorf("Expected entropy of %q is %.6f. Got %.6f", pw, expectedEnt, ent)
-			t.Errorf("True entropy of %q is %.6f", pw, trueEnt)
 		}
 		// fmt.Println(pw)
 	}
 }
+
+
 
 func TestSyllableDigit(t *testing.T) {
 	// wl, err := NewWordList(abSyllables)

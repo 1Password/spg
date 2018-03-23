@@ -180,9 +180,9 @@ func (r WLRecipe) Entropy() float32 {
 	ent := entropySimple(r.Length, size)
 	switch r.Capitalize {
 	case CSRandom:
-		ent += float64(r.Length)
+		ent += float64(r.Length) * r.list.capitalizeRatio()
 	case CSOne:
-		ent += math.Log2(float64(r.Length))
+		ent += math.Log2(float64(r.Length)) * r.list.capitalizeRatio()
 	default: // No change in entropy
 	}
 
@@ -194,6 +194,11 @@ func (r WLRecipe) Entropy() float32 {
 	ent += (float64(r.Length) - 1.0) * sepEnt
 
 	return float32(ent)
+}
+
+func (wl *WordList) capitalizeRatio() float64 {
+	s := float64(len(wl.words))
+	return (s - float64(wl.unCapitalizableCount)) / s
 }
 
 /*** Separator functions
