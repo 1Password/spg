@@ -173,8 +173,8 @@ func (r WLRecipe) Generate() (*Password, error) {
 	return p, nil
 }
 
-// Entropy needs to know the wordlist size to calculate entropy for some attributes
-// BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
+// Entropy returns the entropy from the recipe. It needs to know things
+// about the wordlist used.
 func (r WLRecipe) Entropy() float32 {
 	size := int(r.Size())
 	ent := entropySimple(r.Length, size)
