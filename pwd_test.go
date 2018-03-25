@@ -28,7 +28,8 @@ func TestSimpleEntropy(t *testing.T) {
 	vectors = append(vectors, ESVec{-5, 0, math.Inf(1)})
 
 	for _, v := range vectors {
-		if res := entropySimple(v.Length, v.NElem); cmpFloat(v.Expected, res, entCompTolerance) != 0 {
+		res := entropySimple(v.Length, v.NElem)
+		if cmpFloat(v.Expected, float64(res), entCompTolerance) != 0 {
 			t.Errorf("entropySimple(%d, %d) should be %.6f, not %.6f",
 				v.Length, v.NElem, v.Expected, res)
 		}
