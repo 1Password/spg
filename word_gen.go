@@ -126,7 +126,7 @@ func (r WLRecipe) Generate() (*Password, error) {
 
 	var sf SFFunction
 	if r.SeparatorFunc == nil {
-		sf = SFFunction(func() (string, float32) { return r.SeparatorChar, 0.0 })
+		sf = SFFunction(func() (string, FloatE) { return r.SeparatorChar, 0.0 })
 	} else {
 		sf = r.SeparatorFunc
 	}
@@ -180,18 +180,18 @@ func (r WLRecipe) Entropy() float32 {
 	ent := entropySimple(r.Length, size)
 	switch r.Capitalize {
 	case CSRandom:
-		ent += entropy(float64(r.Length) * r.list.capitalizeRatio())
+		ent += FloatE(float64(r.Length) * r.list.capitalizeRatio())
 	case CSOne:
-		ent += entropy(math.Log2(float64(r.Length)) * r.list.capitalizeRatio())
+		ent += FloatE(math.Log2(float64(r.Length)) * r.list.capitalizeRatio())
 	default: // No change in entropy
 	}
 
 	// Entropy contribution of separators
-	sepEnt := float32(0.0)
+	sepEnt := FloatE(0.0)
 	if r.SeparatorFunc != nil {
 		_, sepEnt = r.SeparatorFunc()
 	}
-	ent += (entropy(r.Length) - 1.0) * entropy(sepEnt)
+	ent += (FloatE(r.Length) - 1.0) * sepEnt
 
 	return float32(ent)
 }
@@ -211,45 +211,45 @@ func (wl *WordList) capitalizeRatio() float64 {
 
 // SFFunction is a type for a function that returns a string
 // (to be used within a password) and the entropy it contributes
-type SFFunction func() (string, float32)
+type SFFunction func() (string, FloatE)
 
 // Pre-baked Separator functions
 
-func sfWrap(r CharRecipe) (string, float32) {
+func sfWrap(r CharRecipe) (string, FloatE) {
 	p, _ := r.Generate() // Not sure how to deal with errors here.
-	return p.String(), p.Entropy
+	return p.String(), FloatE(p.Entropy)
 }
 
 // SFNone empty separator
-func SFNone() (string, float32) { return "", 0.0 }
+func SFNone() (string, FloatE) { return "", 0.0 }
 
 // SFDigits1 each separator is a randomly chosen digit
-func SFDigits1() (string, float32) {
+func SFDigits1() (string, FloatE) {
 	return sfWrap(CharRecipe{Length: 1, Allow: Digits})
 }
 
 // SFDigits2 each separator is two randomly chosen digits
-func SFDigits2() (string, float32) {
+func SFDigits2() (string, FloatE) {
 	return sfWrap(CharRecipe{Length: 2, Allow: Digits})
 }
 
 // SFDigitsNoAmbiguous1 each separator is a non-ambiguous digit
-func SFDigitsNoAmbiguous1() (string, float32) {
+func SFDigitsNoAmbiguous1() (string, FloatE) {
 	return sfWrap(CharRecipe{Length: 1, Allow: Digits, Exclude: Ambiguous})
 }
 
 // SFDigitsNoAmbiguous2 each separator is a pair of randomly chosen non-ambiguous digits
-func SFDigitsNoAmbiguous2() (string, float32) {
+func SFDigitsNoAmbiguous2() (string, FloatE) {
 	return sfWrap(CharRecipe{Length: 2, Allow: Digits, Exclude: Ambiguous})
 }
 
 // SFSymbols each separator is a randomly chosen symbol
-func SFSymbols() (string, float32) {
+func SFSymbols() (string, FloatE) {
 	return sfWrap(CharRecipe{Length: 1, Allow: Symbols})
 }
 
 // SFDigitsSymbols each separator is a randomly chosen digit or symbol
-func SFDigitsSymbols() (string, float32) {
+func SFDigitsSymbols() (string, FloatE) {
 	return sfWrap(CharRecipe{Length: 1, Allow: Symbols | Digits})
 
 }
