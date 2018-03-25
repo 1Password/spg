@@ -63,8 +63,10 @@ func (wl WordList) Size() uint32 {
 }
 
 // NewWordList does what it says on the tin. Pass it a slice of strings
-// It will remove duplicates from the slice provided, and eventually
+// It will remove duplicates from the slice provided, and it 
 // will count up how many words on the list can be changed through capitalization
+// This isn't cheap, so it is best to create each word list once and keep it around
+// as long as you need it.
 func NewWordList(list []string) (*WordList, error) {
 	if len(list) == 0 {
 		return nil, fmt.Errorf("cannot set up word list generator without words")

@@ -40,10 +40,10 @@ interface with two methods, Generate and Entropy.
 
 Generate returns a Password. There is a fair amount of internal structure
 to a Password object, but the ones you are most after is available through
-the Password.String() and Entropy() methods.
+the Password.String() method and the Entropy field.
 
 Entropy returns the entropy of a password that would be generated
-given the current recipe. Although all generators implement Entropy, the way it is calculated can differ greatly depending on the recipe.
+given the current recipe.
 
 
 A word about Entropy
