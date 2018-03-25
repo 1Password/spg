@@ -315,8 +315,9 @@ func TestNonLetterWL(t *testing.T) {
 }
 
 func TestWeirdCapitalizationWL(t *testing.T) {
-	cl := []string{"正確", "Polish", "polish", "one", "two", "three", "4", "five"}
+	cl := []string{"正確", "Polish", "polish", "one", "two", "three", "4", "five", "one"}
 	capAble := 4 // "one", "two", "three", "five"
+	nonDupLen := 8
 	length := 5
 	wl, err := NewWordList(cl)
 	if err != nil {
@@ -328,8 +329,8 @@ func TestWeirdCapitalizationWL(t *testing.T) {
 
 	// Because only some of the words in the wordlist capitalize, the
 	// a.Capitalize = CSOne setting makes a tricky difference
-	expectedEnt := float32(math.Log2(float64(len(cl))) * float64(length))
-	expectedEnt += float32(math.Log2(float64(length))) * (float32(capAble) / float32(len(cl)))
+	expectedEnt := float32(math.Log2(float64(nonDupLen)) * float64(length))
+	expectedEnt += float32(math.Log2(float64(length))) * (float32(capAble) / float32(nonDupLen))
 
 	for i := 0; i < 20; i++ {
 		p, err := a.Generate()
