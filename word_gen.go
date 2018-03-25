@@ -40,7 +40,8 @@ func NewWLRecipe(length int, wl *WordList) *WLRecipe {
 
 // WordList contains the list of words WLGenerator()
 type WordList struct {
-	words []string
+	words                []string
+	unCapitalizableCount int
 }
 
 // Size of the wordlist in the recipe
@@ -75,7 +76,7 @@ func NewWordList(list []string) (*WordList, error) {
 	}
 
 	// We want to ensure that no item appears more than once
-	unique := make(map[string]bool, len(list))
+	unique := make(map[string]bool)
 	var ourWords []string // Don't create with make. We need this to start with zero length
 	for _, word := range list {
 		if !unique[word] {
@@ -83,6 +84,20 @@ func NewWordList(list []string) (*WordList, error) {
 			unique[word] = true
 		}
 	}
+
+	// A second pass to find out how many words have distinct capitalizations
+	// Although it would have been possible to not use a second pass, that would get
+	// ugly if we also want to address the "polish, Polish" case.
+	//
+	// This pass also assumes that everything in unique is "true"
+	unCapable := 0
+	for w := range unique {
+		cap := strings.Title(w)
+		if unique[cap] {
+			unCapable++
+		}
+	}
+
 	if len(list) > len(ourWords) {
 		// We just need to log a warning here. Not sure how we are handling that.
 		// I could create a brain with standard logger and use that, but that seems
@@ -90,7 +105,8 @@ func NewWordList(list []string) (*WordList, error) {
 		fmt.Printf("%d duplicate words found when setting up word list generator\n", len(list)-len(ourWords))
 	}
 	result := &WordList{
-		words: ourWords,
+		words:                ourWords,
+		unCapitalizableCount: unCapable,
 	}
 	return result, nil
 }
@@ -157,16 +173,16 @@ func (r WLRecipe) Generate() (*Password, error) {
 	return p, nil
 }
 
-// Entropy needs to know the wordlist size to calculate entropy for some attributes
-// BUG(jpg) Wordlist capitalization entropy calculation assumes that all words in list begin with a lowercase letter.
+// Entropy returns the entropy from the recipe. It needs to know things
+// about the wordlist used.
 func (r WLRecipe) Entropy() float32 {
 	size := int(r.Size())
 	ent := entropySimple(r.Length, size)
 	switch r.Capitalize {
 	case CSRandom:
-		ent += float64(r.Length)
+		ent += float64(r.Length) * r.list.capitalizeRatio()
 	case CSOne:
-		ent += math.Log2(float64(r.Length))
+		ent += math.Log2(float64(r.Length)) * r.list.capitalizeRatio()
 	default: // No change in entropy
 	}
 
@@ -178,6 +194,11 @@ func (r WLRecipe) Entropy() float32 {
 	ent += (float64(r.Length) - 1.0) * sepEnt
 
 	return float32(ent)
+}
+
+func (wl *WordList) capitalizeRatio() float64 {
+	s := float64(len(wl.words))
+	return (s - float64(wl.unCapitalizableCount)) / s
 }
 
 /*** Separator functions

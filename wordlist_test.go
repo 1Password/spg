@@ -298,8 +298,8 @@ func TestNonLetterWL(t *testing.T) {
 
 	// Because none of the words in the wordlist capitalize, the
 	// a.Capitalize = CSOne setting makes no difference
-	trueEnt := float32(math.Log2(float64(len(cl))) * float64(length))
-	expectedEnt := trueEnt + float32(math.Log2(float64(length)))
+	expectedEnt := float32(math.Log2(float64(len(cl))) * float64(length))
+	// expectedEnt := trueEnt + float32(math.Log2(float64(length)))
 
 	for i := 0; i < 20; i++ {
 		p, err := a.Generate()
@@ -307,12 +307,38 @@ func TestNonLetterWL(t *testing.T) {
 		if err != nil {
 			t.Errorf("generator failed: %v", err)
 		}
-
-		// This test will fail if we use trueEnt instead of expected ent.
-		// This is a consequence uppercasing some words making no difference
 		if cmpFloat32(expectedEnt, ent, entCompTolerance) != 0 {
 			t.Errorf("Expected entropy of %q is %.6f. Got %.6f", pw, expectedEnt, ent)
-			t.Errorf("True entropy of %q is %.6f", pw, trueEnt)
+		}
+		// fmt.Println(pw)
+	}
+}
+
+func TestWeirdCapitalizationWL(t *testing.T) {
+	cl := []string{"正確", "Polish", "polish", "one", "two", "three", "4", "five"}
+	capAble := 4 // "one", "two", "three", "five"
+	length := 5
+	wl, err := NewWordList(cl)
+	if err != nil {
+		t.Errorf("failed to create wordlist generator from list %v: %v", wl, err)
+	}
+	a := NewWLRecipe(length, wl)
+	a.SeparatorChar = " "
+	a.Capitalize = CSOne
+
+	// Because only some of the words in the wordlist capitalize, the
+	// a.Capitalize = CSOne setting makes a tricky difference
+	expectedEnt := float32(math.Log2(float64(len(cl))) * float64(length))
+	expectedEnt += float32(math.Log2(float64(length))) * (float32(capAble) / float32(len(cl)))
+
+	for i := 0; i < 20; i++ {
+		p, err := a.Generate()
+		pw, ent := p.String(), p.Entropy
+		if err != nil {
+			t.Errorf("generator failed: %v", err)
+		}
+		if cmpFloat32(expectedEnt, ent, entCompTolerance) != 0 {
+			t.Errorf("Expected entropy of %q is %.6f. Got %.6f", pw, expectedEnt, ent)
 		}
 		// fmt.Println(pw)
 	}
