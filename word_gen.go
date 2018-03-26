@@ -63,8 +63,10 @@ func (wl WordList) Size() uint32 {
 }
 
 // NewWordList does what it says on the tin. Pass it a slice of strings
-// It will remove duplicates from the slice provided, and eventually
+// It will remove duplicates from the slice provided, and it 
 // will count up how many words on the list can be changed through capitalization
+// This isn't cheap, so it is best to create each word list once and keep it around
+// as long as you need it.
 func NewWordList(list []string) (*WordList, error) {
 	if len(list) == 0 {
 		return nil, fmt.Errorf("cannot set up word list generator without words")
@@ -126,7 +128,7 @@ func (r WLRecipe) Generate() (*Password, error) {
 
 	var sf SFFunction
 	if r.SeparatorFunc == nil {
-		sf = SFFunction(func() (string, float64) { return r.SeparatorChar, 0.0 })
+		sf = SFFunction(func() (string, FloatE) { return r.SeparatorChar, 0.0 })
 	} else {
 		sf = r.SeparatorFunc
 	}
@@ -180,18 +182,18 @@ func (r WLRecipe) Entropy() float32 {
 	ent := entropySimple(r.Length, size)
 	switch r.Capitalize {
 	case CSRandom:
-		ent += float64(r.Length) * r.list.capitalizeRatio()
+		ent += FloatE(float64(r.Length) * r.list.capitalizeRatio())
 	case CSOne:
-		ent += math.Log2(float64(r.Length)) * r.list.capitalizeRatio()
+		ent += FloatE(math.Log2(float64(r.Length)) * r.list.capitalizeRatio())
 	default: // No change in entropy
 	}
 
 	// Entropy contribution of separators
-	sepEnt := 0.0
+	sepEnt := FloatE(0.0)
 	if r.SeparatorFunc != nil {
 		_, sepEnt = r.SeparatorFunc()
 	}
-	ent += (float64(r.Length) - 1.0) * sepEnt
+	ent += (FloatE(r.Length) - 1.0) * sepEnt
 
 	return float32(ent)
 }
@@ -211,31 +213,45 @@ func (wl *WordList) capitalizeRatio() float64 {
 
 // SFFunction is a type for a function that returns a string
 // (to be used within a password) and the entropy it contributes
-type SFFunction func() (string, float64)
+type SFFunction func() (string, FloatE)
 
 // Pre-baked Separator functions
 
+func sfWrap(r CharRecipe) (string, FloatE) {
+	p, _ := r.Generate() // Not sure how to deal with errors here.
+	return p.String(), FloatE(p.Entropy)
+}
+
 // SFNone empty separator
-func SFNone() (string, float64) { return "", 0.0 }
+func SFNone() (string, FloatE) { return "", 0.0 }
 
 // SFDigits1 each separator is a randomly chosen digit
-func SFDigits1() (string, float64) { return nFromString(ctDigits, 1) }
+func SFDigits1() (string, FloatE) {
+	return sfWrap(CharRecipe{Length: 1, Allow: Digits})
+}
 
 // SFDigits2 each separator is two randomly chosen digits
-func SFDigits2() (string, float64) { return nFromString(ctDigits, 2) }
+func SFDigits2() (string, FloatE) {
+	return sfWrap(CharRecipe{Length: 2, Allow: Digits})
+}
 
 // SFDigitsNoAmbiguous1 each separator is a non-ambiguous digit
-func SFDigitsNoAmbiguous1() (string, float64) {
-	return nFromString(subtractString(ctDigits, ctAmbiguous), 1)
+func SFDigitsNoAmbiguous1() (string, FloatE) {
+	return sfWrap(CharRecipe{Length: 1, Allow: Digits, Exclude: Ambiguous})
 }
 
 // SFDigitsNoAmbiguous2 each separator is a pair of randomly chosen non-ambiguous digits
-func SFDigitsNoAmbiguous2() (string, float64) {
-	return nFromString(subtractString(ctDigits, ctAmbiguous), 2)
+func SFDigitsNoAmbiguous2() (string, FloatE) {
+	return sfWrap(CharRecipe{Length: 2, Allow: Digits, Exclude: Ambiguous})
 }
 
 // SFSymbols each separator is a randomly chosen symbol
-func SFSymbols() (string, float64) { return nFromString(ctSymbols, 1) }
+func SFSymbols() (string, FloatE) {
+	return sfWrap(CharRecipe{Length: 1, Allow: Symbols})
+}
 
 // SFDigitsSymbols each separator is a randomly chosen digit or symbol
-func SFDigitsSymbols() (string, float64) { return nFromString(ctSymbols+ctDigits, 1) }
+func SFDigitsSymbols() (string, FloatE) {
+	return sfWrap(CharRecipe{Length: 1, Allow: Symbols | Digits})
+
+}

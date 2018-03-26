@@ -69,7 +69,7 @@ func randomInt32() uint32 {
 // (nelem would be number of words in a wordlist or number of characters in the alphabet
 // from which the password is generated).
 // It returns a float64
-func entropySimple(length int, nelem int) float64 {
+func entropySimple(length int, nelem int) FloatE {
 	// The entropy of, say, a length character password
 	// with characters drawn for letters and digits (so nelem is 62) would be
 	// length * log2(62).
@@ -79,7 +79,7 @@ func entropySimple(length int, nelem int) float64 {
 		fmt.Printf("entropySimple: There must be a positive number of elements. Not %d\n", nelem)
 	}
 	entPerUnit := math.Log2(float64(nelem))
-	return float64(length) * entPerUnit
+	return FloatE(float64(length) * entPerUnit)
 }
 
 // int31n returns, as an int32, a non-negative random number in [0,n) from a cryptographic appropriate source. It panics if n <= 0 or if
