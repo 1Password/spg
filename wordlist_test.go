@@ -316,7 +316,7 @@ func TestNonLetterWL(t *testing.T) {
 
 func TestWeirdCapitalizationWL(t *testing.T) {
 	cl := []string{"正確", "Polish", "polish", "one", "two", "three", "4", "five", "one"}
-	nonDupLen := 8
+	nonDupLen := 7
 	length := 5
 	wl, err := NewWordList(cl)
 	if err != nil {

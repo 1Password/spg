@@ -79,25 +79,37 @@ func NewWordList(list []string) (*WordList, error) {
 
 	// We want to ensure that no item appears more than once
 	unique := make(map[string]bool)
-	var ourWords []string // Don't create with make. We need this to start with zero length
+
 	for _, word := range list {
 		if !unique[word] {
-			ourWords = append(ourWords, word)
 			unique[word] = true
 		}
 	}
 
 	// A second pass to find out how many words have distinct capitalizations
-	// Although it would have been possible to not use a second pass, that would get
-	// ugly if we also want to address the "polish, Polish" case.
+	// This also treats "Polish" and "polish" as duplicates, and will
+	// remove the Capitalized one from the list
 	//
 	// This pass also assumes that everything in unique is "true"
 	unCapable := 0
 	for w := range unique {
-		cap := strings.Title(w)
-		if unique[cap] {
-			unCapable++
+		if unique[w] { // it may have been deleted since range was computed
+			cap := strings.Title(w)
+			if unique[cap] {
+				if cap != w { // w is "polish"
+					delete(unique, cap) // delete won't change what is in range
+				} else {
+					unCapable++
+				}
+			}
 		}
+	}
+
+	// third pass, because life sucks
+	var ourWords []string
+	for w := range unique {
+		ourWords = append(ourWords, w)
+
 	}
 
 	if len(list) > len(ourWords) {
