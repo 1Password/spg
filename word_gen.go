@@ -63,7 +63,7 @@ func (wl WordList) Size() uint32 {
 }
 
 // NewWordList does what it says on the tin. Pass it a slice of strings
-// It will remove duplicates from the slice provided, and it 
+// It will remove duplicates from the slice provided, and it
 // will count up how many words on the list can be changed through capitalization
 // This isn't cheap, so it is best to create each word list once and keep it around
 // as long as you need it.
@@ -180,12 +180,16 @@ func (r WLRecipe) Generate() (*Password, error) {
 func (r WLRecipe) Entropy() float32 {
 	size := int(r.Size())
 	ent := entropySimple(r.Length, size)
-	switch r.Capitalize {
-	case CSRandom:
-		ent += FloatE(float64(r.Length) * r.list.capitalizeRatio())
-	case CSOne:
-		ent += FloatE(math.Log2(float64(r.Length)) * r.list.capitalizeRatio())
-	default: // No change in entropy
+
+	// Contribution of Capitalization scheme
+	if r.list.isAllCapitalizable() {
+		switch r.Capitalize {
+		case CSRandom:
+			ent += FloatE(float64(r.Length))
+		case CSOne:
+			ent += FloatE(math.Log2(float64(r.Length)))
+		default: // No change in entropy
+		}
 	}
 
 	// Entropy contribution of separators
@@ -196,6 +200,13 @@ func (r WLRecipe) Entropy() float32 {
 	ent += (FloatE(r.Length) - 1.0) * sepEnt
 
 	return float32(ent)
+}
+
+func (wl *WordList) isAllCapitalizable() bool {
+	if wl.unCapitalizableCount > 0 {
+		return false
+	}
+	return true
 }
 
 func (wl *WordList) capitalizeRatio() float64 {
