@@ -125,9 +125,7 @@ func NewWordList(list []string) (*WordList, error) {
 	return result, nil
 }
 
-// Generate a password using the wordlist generator. Requires that the generator already be set up
-// Although we are passing a pointer to a generator, that is only to avoid some
-// memory copying. This does not change g.
+// Generate a password using the wordlist recipe.
 func (r WLRecipe) Generate() (*Password, error) {
 	p := &Password{}
 
@@ -187,8 +185,13 @@ func (r WLRecipe) Generate() (*Password, error) {
 	return p, nil
 }
 
-// Entropy returns the entropy from the recipe. It needs to know things
-// about the wordlist used.
+// Entropy returns the min-entropy from the recipe. It needs to know things
+// about the wordlist used as well as other details of the recipe.
+//
+// When the generator produces uniform distirbution (the typical case) min-entropy
+// and Shannon entropy are the same. If capitalization is used and the word list
+// contains members whose capitalization does not yield a distinct element,
+// the distribution becomes non-uniform.
 func (r WLRecipe) Entropy() float32 {
 	size := int(r.Size())
 	ent := entropySimple(r.Length, size)
@@ -203,6 +206,7 @@ func (r WLRecipe) Entropy() float32 {
 		default: // No change in entropy
 		}
 	}
+	// else there is no additional entropy contribution from capitalization
 
 	// Entropy contribution of separators
 	sepEnt := FloatE(0.0)
@@ -237,6 +241,15 @@ func (wl *WordList) capitalizeRatio() float64 {
 // SFFunction is a type for a function that returns a string
 // (to be used within a password) and the entropy it contributes
 type SFFunction func() (string, FloatE)
+
+// NewSFFunction makes a Separator Function from a CharRecipe
+func NewSFFunction(r CharRecipe) SFFunction {
+
+	// I need to learn how to proper create factories.
+	var sf SFFunction
+	sf = func() (string, FloatE) { return sfWrap(r) }
+	return sf
+}
 
 // Pre-baked Separator functions
 
