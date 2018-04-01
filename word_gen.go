@@ -259,35 +259,15 @@ func sfWrap(r CharRecipe) (string, FloatE) {
 }
 
 // SFNone empty separator
-func SFNone() (string, FloatE) { return "", 0.0 }
+// func SFNone() (string, FloatE) { return "", 0.0 }
 
-// SFDigits1 each separator is a randomly chosen digit
-func SFDigits1() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 1, Allow: Digits})
-}
-
-// SFDigits2 each separator is two randomly chosen digits
-func SFDigits2() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 2, Allow: Digits})
-}
-
-// SFDigitsNoAmbiguous1 each separator is a non-ambiguous digit
-func SFDigitsNoAmbiguous1() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 1, Allow: Digits, Exclude: Ambiguous})
-}
-
-// SFDigitsNoAmbiguous2 each separator is a pair of randomly chosen non-ambiguous digits
-func SFDigitsNoAmbiguous2() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 2, Allow: Digits, Exclude: Ambiguous})
-}
-
-// SFSymbols each separator is a randomly chosen symbol
-func SFSymbols() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 1, Allow: Symbols})
-}
-
-// SFDigitsSymbols each separator is a randomly chosen digit or symbol
-func SFDigitsSymbols() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 1, Allow: Symbols | Digits})
-
-}
+// Pre-baked Separator functions
+var (
+	SFNone               SFFunction = func() (string, FloatE) { return "", FloatE(0.0) }                      // Empty separator
+	SFDigits1                       = NewSFFunction(CharRecipe{Length: 1, Allow: Digits})                     // Single digit separator
+	SFDigits2                       = NewSFFunction(CharRecipe{Length: 2, Allow: Digits})                     // Double digit separator
+	SFDigitsNoAmbiguous1            = NewSFFunction(CharRecipe{Length: 1, Allow: Digits, Exclude: Ambiguous}) // Single digit, no ambiguous
+	SFDigitsNoAmbiguous2            = NewSFFunction(CharRecipe{Length: 2, Allow: Digits, Exclude: Ambiguous}) // Double digit, no ambiguous
+	SFSymbols                       = NewSFFunction(CharRecipe{Length: 1, Allow: Symbols})                    // Symbols
+	SFDigitsSymbols                 = NewSFFunction(CharRecipe{Length: 1, Allow: Symbols | Digits})           // Symbols and digits
+)
