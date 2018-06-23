@@ -44,6 +44,12 @@ var charTypeByFlag = map[CTFlag]string{
 	Ambiguous: ctAmbiguous,
 }
 
+// required is a type for the set of strings that characters are required from
+type required []string
+
+// charList is a slice of individual characters (each as a string type)
+type charList []string
+
 /*** Character type passwords ***/
 
 // Generate a password using the character generator. The attributes contain
@@ -55,7 +61,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 	}
 
 	p := &Password{}
-	chars := r.buildCharacterList()
+	chars, _ := r.buildCharacterList()
 
 	tokens := make([]Token, r.Length)
 	for i := 0; i < r.Length; i++ {
@@ -71,16 +77,18 @@ func (r CharRecipe) Generate() (*Password, error) {
 // characters (actually strings of length 1) that are all and only those
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
-func (r CharRecipe) buildCharacterList() []string {
+func (r CharRecipe) buildCharacterList() (charList, required) {
 
 	ab := r.AllowChars
 	exclude := r.ExcludeChars
+	include := r.IncludeSets
 	for f, ct := range charTypeByFlag {
 		if r.Allow&f != 0 {
 			ab += ct
 		}
-		// Treat Include as Allow for now
+		// Include automatically gets added to alphabet, and include sets
 		if r.Include&f != 0 {
+			include = append(include, ct)
 			ab += ct
 		}
 		if r.Exclude&f != 0 {
@@ -89,12 +97,13 @@ func (r CharRecipe) buildCharacterList() []string {
 	}
 
 	alphabet := subtractString(ab, exclude)
-	return strings.Split(alphabet, "")
+	return strings.Split(alphabet, ""), include
 }
 
 // Entropy returns the entropy of a character password given the generator attributes
 func (r CharRecipe) Entropy() float32 {
-	size := len(r.buildCharacterList())
+	cl, _ := r.buildCharacterList()
+	size := len(cl)
 	return float32(entropySimple(r.Length, size))
 }
 
@@ -139,7 +148,7 @@ func NewCharRecipe(length int) *CharRecipe {
 // Alphabet returns a sorted string of the characters that are
 // drawn from in a given recipe, r
 func (r CharRecipe) Alphabet() string {
-	s := r.buildCharacterList()
+	s, _ := r.buildCharacterList()
 	sort.Strings(s)
 	return strings.Join(s, "")
 }
