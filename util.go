@@ -7,24 +7,39 @@ import (
 	"fmt"
 	"math"
 	"strings"
+
+	set "github.com/deckarep/golang-set"
 )
+
+// setFromString creates a set of runes from a string
+func setFromString(s string) set.Set {
+	out := set.NewSet()
+
+	for _, r := range strings.Split(s, "") {
+		var i interface{} = r
+		out.Add(i)
+	}
+	return out
+}
+
+// stringFromSet will panic if the set isn't a set of strings
+func stringFromSet(strSet set.Set) string {
+	out := ""
+	for r := range strSet.Iter() {
+		out += r.(string)
+	}
+	return out
+}
 
 // subtractString returns a copy of source with any characters that appear in remove removed.
 // It does not presever order.
 func subtractString(source, remove string) string {
-	s := make(map[rune]bool)
-	for _, r := range source {
-		s[r] = true
-	}
-	for _, r := range remove {
-		s[r] = false
-	}
-	out := ""
-	for r := range s {
-		if s[r] {
-			out += string(r)
-		}
-	}
+
+	src := setFromString(source)
+	rm := setFromString(remove)
+
+	diff := src.Difference(rm)
+	out := stringFromSet(diff)
 	return out
 }
 
