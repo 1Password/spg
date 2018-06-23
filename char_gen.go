@@ -61,16 +61,42 @@ func (r CharRecipe) Generate() (*Password, error) {
 	}
 
 	p := &Password{}
-	chars, _ := r.buildCharacterList()
+	p.Entropy = r.Entropy() // does not yet deal with inclusion requirements
 
-	tokens := make([]Token, r.Length)
-	for i := 0; i < r.Length; i++ {
-		c := chars[int31n(uint32(len(chars)))]
-		tokens[i] = Token{c, AtomType}
+	chars, include := r.buildCharacterList()
+
+	// The difficulty of meeting requirements can be partially determined from
+	// the Entropy calculation, once we calculate that properly
+	if r.Length < len(include) {
+		return nil, fmt.Errorf("password too short to meet all inclusion requirements")
 	}
-	p.tokens = tokens
-	p.Entropy = r.Entropy()
-	return p, nil
+
+	trials := 25 // We will set this more intellegently once we have math implemented
+
+	for i := 0; i < trials; i++ {
+		tokens := make([]Token, r.Length)
+		for i := 0; i < r.Length; i++ {
+			c := chars[int31n(uint32(len(chars)))]
+			tokens[i] = Token{c, AtomType}
+		}
+		p.tokens = tokens
+
+		if includeFilter(p.String(), include) {
+			return p, nil
+		}
+	}
+	return nil, fmt.Errorf("couldn't generate password complying with requirements after %v attempts", trials)
+}
+
+// incudeFilter checks whether a candidate password has a character
+// from each required/include character set
+func includeFilter(pwd string, include required) bool {
+	for _, rset := range include {
+		if !strings.ContainsAny(pwd, rset) {
+			return false
+		}
+	}
+	return true
 }
 
 // buildCharacterList constructs the "alphabet" that is all and only those
