@@ -200,3 +200,31 @@ func TestExampleCharRecipe(t *testing.T) {
 	ExampleCharRecipe_pin()
 	ExampleCharRecipe_lowerdigits()
 }
+
+// Now let's play with inclusion requirements. Sadly, these may be statistical tests
+
+func TestDigitInclusion(t *testing.T) {
+	r := CharRecipe{
+		Length:  6,
+		Allow:   Letters,
+		Include: Digits | Symbols,
+	}
+
+	successes := 0
+	trials := 50
+	for i := 0; i < trials; i++ {
+		p, err := r.Generate()
+		if err == nil {
+			successes++
+			if !strings.ContainsAny(p.String(), "0123456789") {
+				t.Errorf("%q does not contain a digit", p.String())
+			}
+			if !strings.ContainsAny(p.String(), ctSymbols) {
+				t.Errorf("%q does not contain a symbol", p.String())
+			}
+		}
+	}
+	if testing.Verbose() {
+		fmt.Printf("Able to generate %d length strings %d/%d times\n", r.Length, successes, trials)
+	}
+}

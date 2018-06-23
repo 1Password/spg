@@ -72,7 +72,6 @@ func (r CharRecipe) Generate() (*Password, error) {
 	}
 
 	trials := 25 // We will set this more intellegently once we have math implemented
-
 	for i := 0; i < trials; i++ {
 		tokens := make([]Token, r.Length)
 		for i := 0; i < r.Length; i++ {
@@ -151,7 +150,7 @@ type CharRecipe struct {
 
 	// User provided character sets for Allow, Include, and Exclude
 	AllowChars   string   // Specific characters that may appear
-	IncludeSets  []string // Not yet implemented
+	IncludeSets  required // Partially implemented
 	ExcludeChars string   // Specific characters that must not appear
 }
 
