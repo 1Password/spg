@@ -1,0 +1,14 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "ejMonk/SxM35JIiGYEpXCnmIh/U=",
+			"path": "github.com/deckarep/golang-set",
+			"revision": "504e848d77ea4752b3057b8fb46da0e7f746ccf3",
+			"revisionTime": "2018-06-03T19:32:48Z",
+			"tree": true
+		}
+	],
+	"rootPath": "github.com/agilebits/spg"
+}
