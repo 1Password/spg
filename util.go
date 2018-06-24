@@ -7,29 +7,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
-
-	set "github.com/deckarep/golang-set"
 )
-
-// setFromString creates a set of runes from a string
-func setFromString(s string) set.Set {
-	out := set.NewSet()
-
-	for _, r := range strings.Split(s, "") {
-		var i interface{} = r
-		out.Add(i)
-	}
-	return out
-}
-
-// stringFromSet will panic if the set isn't a set of strings
-func stringFromSet(strSet set.Set) string {
-	out := ""
-	for r := range strSet.Iter() {
-		out += r.(string)
-	}
-	return out
-}
 
 // subtractString returns a copy of source with any characters that appear in remove removed.
 // It does not presever order.
@@ -41,33 +19,6 @@ func subtractString(source, remove string) string {
 	diff := src.Difference(rm)
 	out := stringFromSet(diff)
 	return out
-}
-
-// disjointify trims all the required charsets
-// and the allowed sets so that they are all mutually
-// disjoint.
-func disjointify(allowed charList, include required) (charList, required) {
-	abc := setFromString(strings.Join(allowed, ""))
-
-	includeSets := make([]set.Set, len(include))
-
-	for i := 0; i < len(include); i++ {
-		includeSets[i] = setFromString(include[i])
-	}
-	for i := 0; i < len(include)-1; i++ {
-		abc = abc.Difference(includeSets[i])
-		for j := i + 1; j < len(include); j++ {
-			includeSets[j] = includeSets[j].Difference(includeSets[i])
-		}
-	}
-
-	incOut := make([]string, len(include))
-	for i := 0; i < len(include); i++ {
-		incOut[i] = stringFromSet(includeSets[i])
-	}
-
-	abcOut := strings.Split(stringFromSet(abc), "")
-	return abcOut, incOut
 }
 
 // nFromString picks characters from a sting. This is for internal use only. It does not check for duplicates in the string

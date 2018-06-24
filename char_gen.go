@@ -19,7 +19,8 @@ const ( // character types
  1. `string`
 	These are just handy for any public API, but they can't be
 	directly used for anything and they don't guarantee that elements
-	aren't repeated.
+	aren't repeated. Strings are also useful in a strings.ContainsAny()
+	construction we may use for filtering.
 
  2. `set.Set`
 	These are useful for when we need to perform set operations such as set difference (which we do need for a number of different reasons)
@@ -28,6 +29,12 @@ const ( // character types
 	This is needed for when we need to select uniform random rune from
 	the set. This representation is only needed for the total alphebet
 	passwords are generated from.
+
+	To (hopefully) avoid confusion with other arrays for strings,
+	we have a type alias for this called `charList`.
+
+In light of all of this, I'm going to go against some Go conventions
+and name types in terms of their underlying types.
 */
 
 // required is a type for the set of strings that characters are required from
@@ -82,7 +89,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 
 	// The difficulty of meeting requirements can be partially determined from
 	// the Entropy calculation, once we calculate that properly
-	if r.Length < len(include) {
+	if r.Length < include.size() {
 		return nil, fmt.Errorf("password too short to meet all inclusion requirements")
 	}
 
@@ -102,33 +109,23 @@ func (r CharRecipe) Generate() (*Password, error) {
 	return nil, fmt.Errorf("couldn't generate password complying with requirements after %v attempts", trials)
 }
 
-// incudeFilter checks whether a candidate password has a character
-// from each required/include character set
-func includeFilter(pwd string, include required) bool {
-	for _, rset := range include {
-		if !strings.ContainsAny(pwd, rset) {
-			return false
-		}
-	}
-	return true
-}
-
 // buildCharacterList constructs the "alphabet" that is all and only those
 // characters (actually strings of length 1) that are all and only those
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
-func (r CharRecipe) buildCharacterList() (charList, required) {
+func (r CharRecipe) buildCharacterList() (charList, reqSets) {
 
 	ab := r.AllowChars
 	exclude := r.ExcludeChars
-	include := r.IncludeSets
+	include := make(reqSets, 0)
+	include = append(include, *newReqSet(r.IncludeSets, "Custom"))
 	for f, ct := range charTypeByFlag {
 		if r.Allow&f != 0 {
 			ab += ct
 		}
 		// Include automatically gets added to alphabet, and include sets
 		if r.Include&f != 0 {
-			include = append(include, ct)
+			include = append(include, *newReqSet(ct, "Dunno"))
 			ab += ct
 		}
 		if r.Exclude&f != 0 {
@@ -164,9 +161,9 @@ type CharRecipe struct {
 	Exclude CTFlag // Types must not appear
 
 	// User provided character sets for Allow, Include, and Exclude
-	AllowChars   string   // Specific characters that may appear
-	IncludeSets  required // Partially implemented
-	ExcludeChars string   // Specific characters that must not appear
+	AllowChars   string // Specific characters that may appear
+	IncludeSets  string // Partially implemented
+	ExcludeChars string // Specific characters that must not appear
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
