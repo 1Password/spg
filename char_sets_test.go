@@ -72,6 +72,57 @@ func TestReqSets(t *testing.T) {
 	}
 }
 
+func TestFilter(t *testing.T) {
+	rs := make(reqSets, 2)
+	rs[0] = *newReqSet("abcabc", "TEST1")
+	rs[1] = *newReqSet("cde", "TEST2")
+
+	type tvec struct {
+		pwd      string
+		expected bool
+	}
+
+	vecs := []tvec{
+		{"xxxadxxxx", true},
+		{"xxxxxx", false},
+		{"xxxxaxxxx", false},
+		{"xxxxxdxxx", false},
+	}
+	for _, v := range vecs {
+		if res := includeFilter(v.pwd, rs); res != v.expected {
+			t.Errorf("%q gets %v. Expected %v", v.pwd, res, v.expected)
+		}
+
+	}
+
+}
+
+func TestFilterEmpty(t *testing.T) {
+	rs := make(reqSets, 3)
+	rs[0] = *newReqSet("abcabc", "TEST1")
+	rs[1] = *newReqSet("", "Empty")
+	rs[2] = *newReqSet("cde", "TEST2")
+
+	type tvec struct {
+		pwd      string
+		expected bool
+	}
+
+	vecs := []tvec{
+		{"xxxadxxxx", true},
+		{"xxxxxx", false},
+		{"xxxxaxxxx", false},
+		{"xxxxxdxxx", false},
+	}
+	for _, v := range vecs {
+		if res := includeFilter(v.pwd, rs); res != v.expected {
+			t.Errorf("%q gets %v. Expected %v", v.pwd, res, v.expected)
+		}
+
+	}
+
+}
+
 func TestBuildCharacterList(t *testing.T) {
 	recip := &CharRecipe{Length: 10}
 	recip.Allow = Digits | Symbols
@@ -85,6 +136,14 @@ func TestBuildCharacterList(t *testing.T) {
 	for i := 0; i < len(rs); i++ {
 		t.Logf("rs[%d].Name = %q", i, rs[i].Name)
 		t.Logf("rs[%d].String() = %q", i, rs[i].String())
+	}
+
+}
+
+func TestSetFromEmptyString(t *testing.T) {
+	s := setFromString("")
+	if c := s.Cardinality(); c != 0 {
+		t.Errorf("Set should be size 0, not %v", c)
 	}
 
 }
