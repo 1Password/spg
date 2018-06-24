@@ -71,3 +71,20 @@ func TestReqSets(t *testing.T) {
 		t.Errorf("Wrong union size: %d", size)
 	}
 }
+
+func TestBuildCharacterList(t *testing.T) {
+	recip := &CharRecipe{Length: 10}
+	recip.Allow = Digits | Symbols
+
+	cl, rs := recip.buildCharacterList()
+
+	t.Logf("len(cl): %d", len(cl))
+	t.Logf("cl: %q", strings.Join(cl, ""))
+	t.Logf("len(rs): %d", len(rs))
+
+	for i := 0; i < len(rs); i++ {
+		t.Logf("rs[%d].Name = %q", i, rs[i].Name)
+		t.Logf("rs[%d].String() = %q", i, rs[i].String())
+	}
+
+}

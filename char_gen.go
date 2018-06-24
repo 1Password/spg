@@ -118,7 +118,9 @@ func (r CharRecipe) buildCharacterList() (charList, reqSets) {
 	ab := r.AllowChars
 	exclude := r.ExcludeChars
 	include := make(reqSets, 0)
-	include = append(include, *newReqSet(r.IncludeSets, "Custom"))
+	if len(r.IncludeSets) > 0 {
+		include = append(include, *newReqSet(r.IncludeSets, "Custom"))
+	}
 	for f, ct := range charTypeByFlag {
 		if r.Allow&f != 0 {
 			ab += ct
