@@ -15,6 +15,27 @@ const ( // character types
 	ctSymbols   = "!#%)*+,-.:=>?@]^_}~"
 )
 
+/* We have three different internal representations of collections of characters:
+ 1. `string`
+	These are just handy for any public API, but they can't be
+	directly used for anything and they don't guarantee that elements
+	aren't repeated.
+
+ 2. `set.Set`
+	These are useful for when we need to perform set operations such as set difference (which we do need for a number of different reasons)
+
+3. `[]string` where each string in the slice is a single rune
+	This is needed for when we need to select uniform random rune from
+	the set. This representation is only needed for the total alphebet
+	passwords are generated from.
+*/
+
+// required is a type for the set of strings that characters are required from
+type required []string
+
+// charList is a slice of individual characters (each as a string type)
+type charList []string
+
 // CTFlag is the type for the be
 type CTFlag uint32
 
@@ -43,12 +64,6 @@ var charTypeByFlag = map[CTFlag]string{
 	Symbols:   ctSymbols,
 	Ambiguous: ctAmbiguous,
 }
-
-// required is a type for the set of strings that characters are required from
-type required []string
-
-// charList is a slice of individual characters (each as a string type)
-type charList []string
 
 /*** Character type passwords ***/
 
