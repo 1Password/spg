@@ -34,17 +34,12 @@ func includeFilter(pwd string, include reqSets) bool {
 // and the allowed sets so that they are all mutually
 // disjoint.
 func disjointify(allowed charList, include reqSets) (charList, reqSets) {
+	incOut := include.disjointify()
 	abc := setFromString(strings.Join(allowed, ""))
-	incOut := make(reqSets, 0)
 
-	for i := 0; i < len(include)-1; i++ {
-		abc = abc.Difference(include[i].s)
-		for j := i + 1; j < len(include); j++ {
-			incOut[j].s = include[j].s.Difference(include[i].s)
-		}
-	}
-
+	abc = abc.Difference(include.union().s)
 	abcOut := strings.Split(stringFromSet(abc), "")
+
 	return abcOut, incOut
 }
 

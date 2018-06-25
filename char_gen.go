@@ -136,7 +136,9 @@ func (r CharRecipe) buildCharacterList() (charList, reqSets) {
 	}
 
 	alphabet := subtractString(ab, exclude)
-	return strings.Split(alphabet, ""), include
+	// abcOut, incOut := disjointify(strings.Split(ab, ""), include)
+	abcOut := strings.Split(alphabet, "")
+	return abcOut, include
 }
 
 // Entropy returns the entropy of a character password given the generator attributes
