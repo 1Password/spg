@@ -127,7 +127,8 @@ func TestBuildCharacterList(t *testing.T) {
 	recip := &CharRecipe{Length: 10}
 	recip.Allow = Digits | Symbols
 
-	cl, rs := recip.buildCharacterList()
+	cl := recip.buildCharacterList()
+	rs := recip.requeredSets
 
 	t.Logf("len(cl): %d", len(cl))
 	t.Logf("cl: %q", strings.Join(cl, ""))

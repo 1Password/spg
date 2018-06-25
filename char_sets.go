@@ -1,6 +1,7 @@
 package spg
 
 import (
+	"fmt"
 	"strings"
 
 	set "github.com/deckarep/golang-set"
@@ -21,26 +22,33 @@ func includeFilter(pwd string, include reqSets) bool {
 	if include == nil || len(include) == 0 {
 		return true
 	}
-	for _, r := range include {
+	for _, rset := range include {
 		// ContainsAny does not treat empty strings like empty sets
-		if r.size() > 0 && !strings.ContainsAny(pwd, r.s.String()) {
+		if rset.size() > 0 && !strings.ContainsAny(pwd, rset.s.String()) {
 			return false
 		}
 	}
 	return true
 }
 
+func (r CharRecipe) fullAlphabet() (charList, error) {
+	if r.allowedSet == nil {
+		return nil, fmt.Errorf("allowedSet is nil")
+	}
+	fullABC := r.allowedSet.Union(r.requeredSets.union().s)
+	return strings.Split(stringFromSet(fullABC), ""), nil
+}
+
 // disjointify trims all the required charsets
 // and the allowed sets so that they are all mutually
 // disjoint.
-func disjointify(allowed charList, include reqSets) (charList, reqSets) {
-	incOut := include.disjointify()
+func disjointify(allowed charList, include reqSets) charList {
 	abc := setFromString(strings.Join(allowed, ""))
 
 	abc = abc.Difference(include.union().s)
 	abcOut := strings.Split(stringFromSet(abc), "")
 
-	return abcOut, incOut
+	return abcOut
 }
 
 // setFromString creates a set of runes from a string
@@ -106,15 +114,4 @@ func (r reqSet) size() int {
 		return 0
 	}
 	return r.s.Cardinality()
-}
-
-func (rs reqSets) disjointify() reqSets {
-	incOut := make(reqSets, 0)
-
-	for i := 0; i < len(rs)-1; i++ {
-		for j := i + 1; j < len(rs); j++ {
-			incOut[j].s = rs[j].s.Difference(rs[i].s)
-		}
-	}
-	return incOut
 }

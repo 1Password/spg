@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	set "github.com/deckarep/golang-set"
 )
 
 // Character types for Character and Separator generation
@@ -85,11 +87,11 @@ func (r CharRecipe) Generate() (*Password, error) {
 	p := &Password{}
 	p.Entropy = r.Entropy() // does not yet deal with inclusion requirements
 
-	chars, include := r.buildCharacterList()
+	chars := r.buildCharacterList()
 
 	// The difficulty of meeting requirements can be partially determined from
 	// the Entropy calculation, once we calculate that properly
-	if r.Length < include.size() {
+	if r.Length < r.requeredSets.size() {
 		return nil, fmt.Errorf("password too short to meet all inclusion requirements")
 	}
 
@@ -102,7 +104,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 		}
 		p.tokens = tokens
 
-		if includeFilter(p.String(), include) {
+		if includeFilter(p.String(), r.requeredSets) {
 			return p, nil
 		}
 	}
@@ -113,13 +115,14 @@ func (r CharRecipe) Generate() (*Password, error) {
 // characters (actually strings of length 1) that are all and only those
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
-func (r CharRecipe) buildCharacterList() (charList, reqSets) {
+func (r CharRecipe) buildCharacterList() charList {
 
 	ab := r.AllowChars
 	exclude := r.ExcludeChars
 	include := make(reqSets, 0)
 	if len(r.IncludeSets) > 0 {
 		include = append(include, *newReqSet(r.IncludeSets, "Custom"))
+		ab += r.IncludeSets
 	}
 	for f, ct := range charTypeByFlag {
 		if r.Allow&f != 0 {
@@ -135,15 +138,28 @@ func (r CharRecipe) buildCharacterList() (charList, reqSets) {
 		}
 	}
 
-	alphabet := subtractString(ab, exclude)
-	// abcOut, incOut := disjointify(strings.Split(ab, ""), include)
-	abcOut := strings.Split(alphabet, "")
-	return abcOut, include
+	// Now we need to clean this all up. First let's make them
+	// sets.
+
+	exS := setFromString(exclude)
+	r.allowedSet = setFromString(ab)
+	r.allowedSet = r.allowedSet.Difference(exS)
+
+	// now remove excluded from each reqSet
+	// and remove each ReqSet from allowedSet
+	for _, req := range include {
+		req.s = req.s.Difference(exS)
+		r.allowedSet = r.allowedSet.Difference(req.s)
+	}
+	r.requeredSets = include
+
+	fullABCSet := r.allowedSet.Union(r.requeredSets.union().s)
+	return strings.Split(stringFromSet(fullABCSet), "")
 }
 
 // Entropy returns the entropy of a character password given the generator attributes
 func (r CharRecipe) Entropy() float32 {
-	cl, _ := r.buildCharacterList()
+	cl := r.buildCharacterList()
 	size := len(cl)
 	return float32(entropySimple(r.Length, size))
 }
@@ -168,6 +184,10 @@ type CharRecipe struct {
 	AllowChars   string // Specific characters that may appear
 	IncludeSets  string // Partially implemented
 	ExcludeChars string // Specific characters that must not appear
+
+	// Following sets are computed
+	allowedSet   set.Set // Allowed, but not required
+	requeredSets reqSets // List of sets of required characters
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
@@ -189,7 +209,7 @@ func NewCharRecipe(length int) *CharRecipe {
 // Alphabet returns a sorted string of the characters that are
 // drawn from in a given recipe, r
 func (r CharRecipe) Alphabet() string {
-	s, _ := r.buildCharacterList()
+	s := r.buildCharacterList()
 	sort.Strings(s)
 	return strings.Join(s, "")
 }
