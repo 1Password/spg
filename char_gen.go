@@ -115,7 +115,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 // characters (actually strings of length 1) that are all and only those
 // characters from which the password will be build. It also ensures that
 // there are no duplicates
-func (r CharRecipe) buildCharacterList() charList {
+func (r *CharRecipe) buildCharacterList() charList {
 
 	ab := r.AllowChars
 	exclude := r.ExcludeChars

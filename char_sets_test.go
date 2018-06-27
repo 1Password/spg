@@ -125,14 +125,38 @@ func TestFilterEmpty(t *testing.T) {
 
 func TestBuildCharacterList(t *testing.T) {
 	recip := &CharRecipe{Length: 10}
-	recip.Allow = Digits | Symbols
+	recip.Allow = Letters
+	recip.Include = Digits
 
 	cl := recip.buildCharacterList()
 	rs := recip.requeredSets
 
-	t.Logf("len(cl): %d", len(cl))
-	t.Logf("cl: %q", strings.Join(cl, ""))
-	t.Logf("len(rs): %d", len(rs))
+	if len(cl) != 62 {
+		t.Errorf("len(%q) != 62: cl is %d", strings.Join(cl, ""), len(cl))
+	}
+	if len(rs) != 1 {
+		t.Errorf("len(rs) != 1: %d", len(rs))
+	}
+
+	for i := 0; i < len(rs); i++ {
+		t.Logf("rs[%d].Name = %q", i, rs[i].Name)
+		t.Logf("rs[%d].String() = %q", i, rs[i].String())
+	}
+
+	// Test with a more complicated set up
+	recip = &CharRecipe{Length: 10}
+	recip.Allow = Letters
+	recip.Include = Digits | Lowers
+
+	cl = recip.buildCharacterList()
+	rs = recip.requeredSets
+
+	if len(cl) != 62 {
+		t.Errorf("len(%q) != 62: cl is %d", strings.Join(cl, ""), len(cl))
+	}
+	if len(rs) != 2 {
+		t.Errorf("len(rs) != 2: %d", len(rs))
+	}
 
 	for i := 0; i < len(rs); i++ {
 		t.Logf("rs[%d].Name = %q", i, rs[i].Name)
