@@ -74,6 +74,18 @@ var charTypeByFlag = map[CTFlag]string{
 	Ambiguous: ctAmbiguous,
 }
 
+// ctNamesByFlag
+var charTypeNamesByFlag = map[CTFlag]string{
+	Uppers:  "Uppers",
+	Lowers:  "Lowers",
+	Digits:  "Digits",
+	Symbols: "Symbols",
+
+	None:    "None",
+	Letters: "Letters",
+	All:     "All characters",
+}
+
 /*** Character type passwords ***/
 
 // Generate a password using the character generator. The attributes contain
@@ -130,7 +142,11 @@ func (r *CharRecipe) buildCharacterList() charList {
 		}
 		// Include automatically gets added to alphabet, and include sets
 		if r.Include&f != 0 {
-			include = append(include, *newReqSet(ct, "Dunno"))
+			ctName, ok := charTypeNamesByFlag[f]
+			if !ok {
+				ctName = "Dunno"
+			}
+			include = append(include, *newReqSet(ct, ctName))
 			ab += ct
 		}
 		if r.Exclude&f != 0 {
