@@ -103,7 +103,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 
 	// The difficulty of meeting requirements can be partially determined from
 	// the Entropy calculation, once we calculate that properly
-	if r.Length < r.requeredSets.size() {
+	if r.Length < r.requiredSets.size() {
 		return nil, fmt.Errorf("password too short to meet all inclusion requirements")
 	}
 
@@ -116,7 +116,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 		}
 		p.tokens = tokens
 
-		if includeFilter(p.String(), r.requeredSets) {
+		if includeFilter(p.String(), r.requiredSets) {
 			return p, nil
 		}
 	}
@@ -167,9 +167,9 @@ func (r *CharRecipe) buildCharacterList() charList {
 		req.s = req.s.Difference(exS)
 		r.allowedSet = r.allowedSet.Difference(req.s)
 	}
-	r.requeredSets = include
+	r.requiredSets = include
 
-	fullABCSet := r.allowedSet.Union(r.requeredSets.union().s)
+	fullABCSet := r.allowedSet.Union(r.requiredSets.union().s)
 	return strings.Split(stringFromSet(fullABCSet), "")
 }
 
@@ -203,7 +203,7 @@ type CharRecipe struct {
 
 	// Following sets are computed
 	allowedSet   set.Set // Allowed, but not required
-	requeredSets reqSets // List of sets of required characters
+	requiredSets reqSets // List of sets of required characters
 }
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length

@@ -129,7 +129,7 @@ func TestBuildCharacterList(t *testing.T) {
 	recip.Include = Digits
 
 	cl := recip.buildCharacterList()
-	rs := recip.requeredSets
+	rs := recip.requiredSets
 
 	if len(cl) != 62 {
 		t.Errorf("len(%q) != 62: cl is %d", strings.Join(cl, ""), len(cl))
@@ -149,7 +149,7 @@ func TestBuildCharacterList(t *testing.T) {
 	recip.Include = Digits | Lowers
 
 	cl = recip.buildCharacterList()
-	rs = recip.requeredSets
+	rs = recip.requiredSets
 
 	if len(cl) != 62 {
 		t.Errorf("len(%q) != 62: cl is %d", strings.Join(cl, ""), len(cl))

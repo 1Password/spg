@@ -35,7 +35,7 @@ func (r CharRecipe) fullAlphabet() (charList, error) {
 	if r.allowedSet == nil {
 		return nil, fmt.Errorf("allowedSet is nil")
 	}
-	fullABC := r.allowedSet.Union(r.requeredSets.union().s)
+	fullABC := r.allowedSet.Union(r.requiredSets.union().s)
 	return strings.Split(stringFromSet(fullABC), ""), nil
 }
 
