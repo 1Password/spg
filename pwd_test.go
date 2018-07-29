@@ -228,3 +228,31 @@ func TestDigitInclusion(t *testing.T) {
 		fmt.Printf("Able to generate %d length strings %d/%d times\n", r.Length, successes, trials)
 	}
 }
+
+func TestMultipleInclusion(t *testing.T) {
+	oddPrimes := "357"
+	squares := "49" // OK, squares greater than 1
+	r := CharRecipe{
+		Length:      18,
+		Allow:       Lowers | Digits,
+		IncludeSets: []string{oddPrimes, squares},
+	}
+
+	successes := 0
+	trials := 50
+	for i := 0; i < trials; i++ {
+		p, err := r.Generate()
+		if err == nil {
+			successes++
+			if !strings.ContainsAny(p.String(), oddPrimes) {
+				t.Errorf("%q does not contain an odd prime", p.String())
+			}
+			if !strings.ContainsAny(p.String(), squares) {
+				t.Errorf("%q does not contain a square", p.String())
+			}
+		}
+	}
+	if testing.Verbose() {
+		fmt.Printf("Able to generate %d length strings %d/%d times\n", r.Length, successes, trials)
+	}
+}

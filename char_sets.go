@@ -24,7 +24,8 @@ func includeFilter(pwd string, include reqSets) bool {
 	}
 	for _, rset := range include {
 		// ContainsAny does not treat empty strings like empty sets
-		if rset.size() > 0 && !strings.ContainsAny(pwd, rset.s.String()) {
+		rs := stringFromSet(rset.s) // Separate var for debugging
+		if rset.size() > 0 && !strings.ContainsAny(pwd, rs) {
 			return false
 		}
 	}

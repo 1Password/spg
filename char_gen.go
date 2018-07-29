@@ -116,7 +116,8 @@ func (r CharRecipe) Generate() (*Password, error) {
 		}
 		p.tokens = tokens
 
-		if includeFilter(p.String(), r.requiredSets) {
+		ps := p.String() // creating this variable for debugging
+		if includeFilter(ps, r.requiredSets) {
 			return p, nil
 		}
 	}
@@ -132,9 +133,12 @@ func (r *CharRecipe) buildCharacterList() charList {
 	ab := r.AllowChars
 	exclude := r.ExcludeChars
 	include := make(reqSets, 0)
-	if len(r.IncludeSets) > 0 {
-		include = append(include, *newReqSet(r.IncludeSets, "Custom"))
-		ab += r.IncludeSets
+	for i, s := range r.IncludeSets {
+		if len(s) > 0 {
+			include = append(include,
+				*newReqSet(s, fmt.Sprintf("Custom %d", i+1)))
+			ab += s
+		}
 	}
 	for f, ct := range charTypeByFlag {
 		if r.Allow&f != 0 {
@@ -197,9 +201,9 @@ type CharRecipe struct {
 	Exclude CTFlag // Types must not appear
 
 	// User provided character sets for Allow, Include, and Exclude
-	AllowChars   string // Specific characters that may appear
-	IncludeSets  string // Partially implemented
-	ExcludeChars string // Specific characters that must not appear
+	AllowChars   string   // Specific characters that may appear
+	IncludeSets  []string // Partially implemented
+	ExcludeChars string   // Specific characters that must not appear
 
 	// Following sets are computed
 	allowedSet   set.Set // Allowed, but not required
