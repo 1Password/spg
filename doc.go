@@ -53,9 +53,10 @@ is either an incoherent concept or the wrong concept to use when talking about t
 of a password.
 It does, however, make sense when a password is drawn uniformly from a space of possible passwords.
 This package does ensure that passwords are generated uniformly given the recipe
-passed to the generator.
-Indeed, the Entropy is a function solely of the recipe and some properties
-of any wordlist given.
+passed to the generator, with the exception of the interaction of capitalizaton for some wordlists.
+In those cases, min-entropy is reported.
+
+Entropy is a function solely of the recipes.
 */
 package spg
 
