@@ -180,6 +180,11 @@ func (r *CharRecipe) buildCharacterList() charList {
 // Entropy returns the entropy of a character password given the generator attributes
 func (r CharRecipe) Entropy() float32 {
 	cl := r.buildCharacterList()
+	if r.requiredSets.size() != 0 {
+		// return r.entropyWithRequired()
+
+		// fall through until theentWithReq is working
+	}
 	size := len(cl)
 	return float32(entropySimple(r.Length, size))
 }
