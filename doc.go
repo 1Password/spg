@@ -8,6 +8,18 @@ passwords it returns follow a uniform distribution.
 The clients of this package are expected to manage what is presented to users.
 This engine offers far greater flexibility than should normally be exposed to users.
 
+Usage overview
+
+The very highlevel usage over view for most cases is
+
+1. The user will create either a character recipe, r, with NewCharRecipe()
+or a word (or syllable) list recipe, r, with NewWLRecipe().
+
+2. The user will call the r.Generate() method of a recipe, r, to generate a password, pwd.
+
+3. The returned password, pwd, has a String() method, which does the obvious thing and
+Entropy field, which contains the min-Entropy based on the recipe.
+
 Wordlist and pronounceable
 
 The word list generator produces things like "correct horse battery staple", but
@@ -57,6 +69,8 @@ passed to the generator, with the exception of the interaction of capitalizaton 
 In those cases, min-entropy is reported.
 
 Entropy is a function solely of the recipes.
+
+BUG(jpg): Entropy does not correctly adjust for include (required) charsets.
 */
 package spg
 

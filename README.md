@@ -6,4 +6,19 @@ The Strong Password Generator package offers the underlying engine for flexible 
 
 The clients of this package are expected to manage what is presented to users. This engine offers far greater flexibility than should normally be exposed to users.
 
-The various `Generate()` methods return a `Password` object which has a `String()` method and an `Entropy()` method. But for the moment (March 2018), how the `Generate()` methods are called and how the generators are build is still subject to change.
+## Vendored packages
+
+Before you can successfully build, you may need to install dependencies. These are currently[^1] managed using [`govendor`](https://github.com/kardianos/govendor). Install it if needed,
+
+```
+go get -u github.com/kardianos/govendor
+```
+
+And then use 
+
+```
+govendor sync
+```
+to fetch the appropriate dependencies into `./vendor`
+
+[^1]: We will probably switch to go modules at some point
