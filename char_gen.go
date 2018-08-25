@@ -178,6 +178,7 @@ func (r *CharRecipe) buildCharacterList() charList {
 }
 
 // Entropy returns the entropy of a character password given the generator attributes
+// BUG(jpg): Entropy does not correctly adjust for include (required) charsets.
 func (r CharRecipe) Entropy() float32 {
 	cl := r.buildCharacterList()
 	size := len(cl)
