@@ -182,9 +182,7 @@ func (r *CharRecipe) buildCharacterList() charList {
 func (r CharRecipe) Entropy() float32 {
 	cl := r.buildCharacterList()
 	if r.requiredSets.size() != 0 {
-		// return r.entropyWithRequired()
-
-		// fall through until theentWithReq is working
+		return r.entropyWithRequired()
 	}
 	size := len(cl)
 	return float32(entropySimple(r.Length, size))

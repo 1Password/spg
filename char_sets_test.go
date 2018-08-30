@@ -37,11 +37,11 @@ import (
 // ]
 
 func TestEntropy(t *testing.T) {
-	recip := &CharRecipe{Length: 1}
-	recip.AllowChars = ""
-	recip.IncludeSets = []string{""}
-	if recip.entropyWithRequired() != 0.0 {
-		t.Errorf("entropy should be 0")
+	recip := &CharRecipe{Length: 2}
+	recip.AllowChars = "A1"
+	recip.IncludeSets = []string{"a"}
+	if recip.Entropy() != 5.0 {
+		t.Errorf("entropy should be 5")
 	}
 }
 
