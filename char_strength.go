@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/big"
 
-	set "github.com/agilebits/golang-set"
+	set "github.com/deckarep/golang-set"
 )
 
 // This is where we do the math for the entropy calculation for character

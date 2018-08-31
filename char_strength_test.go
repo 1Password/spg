@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	set "github.com/agilebits/golang-set"
+	set "github.com/deckarep/golang-set"
 )
 
 // expectation is data for a single entropy test

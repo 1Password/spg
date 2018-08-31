@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	set "github.com/agilebits/golang-set"
+	set "github.com/deckarep/golang-set"
 )
 
 // reqSet is how we internally represent a set of characters
