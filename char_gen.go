@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	set "github.com/deckarep/golang-set"
+	set "github.com/agilebits/golang-set"
 )
 
 // Character types for Character and Separator generation

@@ -1,10 +1,11 @@
 package spg
 
 import (
+	"math"
 	"strings"
 	"testing"
 
-	set "github.com/deckarep/golang-set"
+	set "github.com/agilebits/golang-set"
 )
 
 // const expectations = [
@@ -40,8 +41,8 @@ func TestEntropy(t *testing.T) {
 	recip := &CharRecipe{Length: 2}
 	recip.AllowChars = "A1"
 	recip.IncludeSets = []string{"a"}
-	if recip.Entropy() != 5.0 {
-		t.Errorf("entropy should be 5")
+	if recip.Entropy() != float32(math.Log2(5.0)) {
+		t.Errorf("entropy should be lg(5)")
 	}
 }
 
