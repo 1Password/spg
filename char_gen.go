@@ -2,6 +2,7 @@ package spg
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 
@@ -97,17 +98,17 @@ func (r CharRecipe) Generate() (*Password, error) {
 	}
 
 	p := &Password{}
-	p.Entropy = r.Entropy() // does not yet deal with inclusion requirements
+	p.Entropy = r.Entropy()
 
 	chars := r.buildCharacterList()
 
-	// The difficulty of meeting requirements can be partially determined from
-	// the Entropy calculation, once we calculate that properly
-	if r.Length < r.requiredSets.size() {
+	// If it's impossible to meet requirements, there will be 0 possibilities and entropy will be -Inf.
+	// Entropy of 0 means there's 1 possibility.
+	if math.IsInf(float64(p.Entropy), -1) {
 		return nil, fmt.Errorf("password too short to meet all inclusion requirements")
 	}
 
-	trials := 25 // We will set this more intellegently once we have math implemented
+	trials := 200
 	for i := 0; i < trials; i++ {
 		tokens := make([]Token, r.Length)
 		for i := 0; i < r.Length; i++ {
@@ -178,7 +179,6 @@ func (r *CharRecipe) buildCharacterList() charList {
 }
 
 // Entropy returns the entropy of a character password given the generator attributes
-// BUG(jpg): Entropy does not correctly adjust for include (required) charsets.
 func (r CharRecipe) Entropy() float32 {
 	cl := r.buildCharacterList()
 	if r.requiredSets.size() != 0 {

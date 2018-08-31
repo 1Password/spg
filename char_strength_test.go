@@ -1,6 +1,7 @@
 package spg
 
 import (
+	"math"
 	"testing"
 
 	set "github.com/agilebits/golang-set"
@@ -61,7 +62,17 @@ func TestN(t *testing.T) {
 		intResult := result.Int64()
 
 		if intResult != exp.Result {
-			t.Errorf("%d: result should be %d", i, exp.Result)
+			t.Errorf("%d: result should be %d, was %d", i, exp.Result, intResult)
 		}
+	}
+}
+
+func TestEntropy(t *testing.T) {
+	recip := &CharRecipe{Length: 2}
+	recip.AllowChars = ""
+	recip.IncludeSets = []string{upper, lower, digits}
+	e := recip.Entropy()
+	if !math.IsInf(float64(e), -1) {
+		t.Errorf("entropy should be -Inf, was %f", e)
 	}
 }
