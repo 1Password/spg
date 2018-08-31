@@ -1,50 +1,11 @@
 package spg
 
 import (
-	"math"
 	"strings"
 	"testing"
 
 	set "github.com/agilebits/golang-set"
 )
-
-// const expectations = [
-// 	{ required: [""], length: 1, result: 0 },
-// 	{ required: ["a"], length: 0, result: 0 },
-// 	{ required: ["a"], length: 1, result: 1 },
-// 	{ required: ["a"], length: 5, result: 1 },
-// 	{ required: ["abcde"], length: 1, result: 5 },
-// 	{ required: ["abcde"], length: 2, result: 25 },
-// 	{ required: ["a", "1"], length: 2, result: 2 },
-// 	{ required: ["ab", "123"], length: 2, result: 12 },
-
-// 	{ required: [upper, lower, digits], length: 0, result: 0 },
-// 	{ required: [upper, lower, digits], length: 1, result: 0 },
-// 	{ required: [upper, lower, digits], length: 2, result: 0 },
-// 	{ required: [upper, lower, digits], length: 3, result: 40560 },
-// 	{ required: [upper + lower, digits], length: 3, result: 96720 },
-
-// 	{ required: [upper], length: 3, result: 17576 },
-// 	{ optional: [upper], length: 3, result: 17576 },
-// 	{ required: [upper + lower + digits], length: 3, result: 238328 },
-// 	{ optional: [upper, lower, digits], length: 3, result: 238328 },
-
-// 	{ required: ["a", "1"], length: 1, result: 0 },
-// 	{ required: ["a"], optional: ["1"], length: 1, result: 1 },
-// 	{ required: ["a"], optional: ["A", "1"], length: 2, result: 5 },
-// 	{ required: ["a"], optional: ["A1"], length: 2, result: 5 },
-// 	{ required: ["a", "A"], optional: ["1"], length: 2, result: 2 },
-// 	{ required: ["a", "A"], optional: ["1"], length: 3, result: 12 },
-// ]
-
-func TestEntropy(t *testing.T) {
-	recip := &CharRecipe{Length: 2}
-	recip.AllowChars = "A1"
-	recip.IncludeSets = []string{"a"}
-	if recip.Entropy() != float32(math.Log2(5.0)) {
-		t.Errorf("entropy should be lg(5)")
-	}
-}
 
 func TestSetFromString(t *testing.T) {
 	s := setFromString("abcd")
