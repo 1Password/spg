@@ -3,10 +3,10 @@
 	"ignore": "",
 	"package": [
 		{
-			"checksumSHA1": "ikO77PLJO90KptCEnpB+PDG9Jtc=",
+			"checksumSHA1": "9gMwbyjWbucWVW9/H+e1psSsxmA=",
 			"path": "github.com/agilebits/golang-set",
-			"revision": "1f7597a63b8c30b920269c9a9ff6d1d7e30c364c",
-			"revisionTime": "2018-08-31T04:10:26Z"
+			"revision": "fc568274f2c9f3ce80c9a8c15f28f684e2b57a44",
+			"revisionTime": "2018-08-31T17:40:06Z"
 		}
 	],
 	"rootPath": "github.com/agilebits/spg"
