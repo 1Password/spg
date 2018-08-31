@@ -17,14 +17,19 @@ func (r CharRecipe) entropyWithRequired() float32 {
 	for _, req := range r.requiredSets {
 		required.Add(req.s)
 	}
-	value := N(allowed, required, r.Length)
 
-	floatValue := big.NewFloat(0).SetInt(value)
-	f64, _ := floatValue.Float64()
-	if math.IsInf(f64, 1) {
-		f64 = math.MaxFloat64
+	intValue := N(allowed, required, r.Length)
+	floatValue := big.NewFloat(0).SetInt(intValue)
+
+	// big.Float doesn't have a Log function, so we need to stuff the
+	// result into a float64.
+	// See https://github.com/golang/go/issues/14102
+	float64Value, _ := floatValue.Float64()
+	if math.IsInf(float64Value, 1) {
+		float64Value = math.MaxFloat64
 	}
-	return float32(math.Log2(f64))
+
+	return float32(math.Log2(float64Value))
 }
 
 // N is the number of possible passwords that can be generated.
