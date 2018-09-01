@@ -1,3 +1,5 @@
+vendor/*/
+!vendor/vendor.json
 ## From github.com/gitignore/Go.gitignore
 # Binaries for programs and plugins
 *.exe
