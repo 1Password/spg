@@ -58,7 +58,7 @@ func toSetOfSets(arr []string) set.Set {
 
 func TestN(t *testing.T) {
 	for i, exp := range expectations {
-		result := N(toSetOfSets(exp.Allowed), toSetOfSets(exp.Required), exp.Length)
+		result := n(toSetOfSets(exp.Allowed), toSetOfSets(exp.Required), exp.Length)
 		intResult := result.Int64()
 
 		if intResult != exp.Result {
