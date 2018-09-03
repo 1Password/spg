@@ -68,9 +68,7 @@ This package does ensure that passwords are generated uniformly given the recipe
 passed to the generator, with the exception of the interaction of capitalizaton for some wordlists.
 In those cases, min-entropy is reported.
 
-Entropy is a function solely of the recipes.
-
-BUG(jpg): Entropy does not correctly adjust for include (required) charsets.
+Entropy is a function solely of the recipe.
 */
 package spg
 
