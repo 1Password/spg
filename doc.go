@@ -69,8 +69,6 @@ passed to the generator, with the exception of the interaction of capitalizaton 
 In those cases, min-entropy is reported.
 
 Entropy is a function solely of the recipes.
-
-BUG(jpg): Entropy does not correctly adjust for include (required) charsets.
 */
 package spg
 

@@ -89,7 +89,7 @@ func TestFilter(t *testing.T) {
 		{"xxxxxdxxx", false},
 	}
 	for _, v := range vecs {
-		if res := includeFilter(v.pwd, rs); res != v.expected {
+		if res := requireFilter(v.pwd, rs); res != v.expected {
 			t.Errorf("%q gets %v. Expected %v", v.pwd, res, v.expected)
 		}
 
@@ -115,7 +115,7 @@ func TestFilterEmpty(t *testing.T) {
 		{"xxxxxdxxx", false},
 	}
 	for _, v := range vecs {
-		if res := includeFilter(v.pwd, rs); res != v.expected {
+		if res := requireFilter(v.pwd, rs); res != v.expected {
 			t.Errorf("%q gets %v. Expected %v", v.pwd, res, v.expected)
 		}
 
@@ -126,7 +126,7 @@ func TestFilterEmpty(t *testing.T) {
 func TestBuildCharacterList(t *testing.T) {
 	recip := &CharRecipe{Length: 10}
 	recip.Allow = Letters
-	recip.Include = Digits
+	recip.Require = Digits
 
 	cl := recip.buildCharacterList()
 	rs := recip.requiredSets
@@ -146,7 +146,7 @@ func TestBuildCharacterList(t *testing.T) {
 	// Test with a more complicated set up
 	recip = &CharRecipe{Length: 10}
 	recip.Allow = Letters
-	recip.Include = Digits | Lowers
+	recip.Require = Digits | Lowers
 
 	cl = recip.buildCharacterList()
 	rs = recip.requiredSets

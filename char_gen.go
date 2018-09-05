@@ -51,7 +51,7 @@ type CTFlag uint32
 
 // Character type flags
 const (
-	// Character types useful for Allow and Include
+	// Character types useful for Allow and Require
 	Uppers CTFlag = 1 << iota
 	Lowers
 	Digits
@@ -118,7 +118,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 		p.tokens = tokens
 
 		ps := p.String() // creating this variable for debugging
-		if includeFilter(ps, r.requiredSets) {
+		if requireFilter(ps, r.requiredSets) {
 			return p, nil
 		}
 	}
@@ -133,10 +133,10 @@ func (r *CharRecipe) buildCharacterList() charList {
 
 	ab := r.AllowChars
 	exclude := r.ExcludeChars
-	include := make(reqSets, 0)
-	for i, s := range r.IncludeSets {
+	require := make(reqSets, 0)
+	for i, s := range r.RequireSets {
 		if len(s) > 0 {
-			include = append(include,
+			require = append(require,
 				*newReqSet(s, fmt.Sprintf("Custom %d", i+1)))
 			ab += s
 		}
@@ -145,13 +145,13 @@ func (r *CharRecipe) buildCharacterList() charList {
 		if r.Allow&f != 0 {
 			ab += ct
 		}
-		// Include automatically gets added to alphabet, and include sets
-		if r.Include&f != 0 {
+		// Require automatically gets added to alphabet and to the require sets
+		if r.Require&f != 0 {
 			ctName, ok := charTypeNamesByFlag[f]
 			if !ok {
 				ctName = "Dunno"
 			}
-			include = append(include, *newReqSet(ct, ctName))
+			require = append(require, *newReqSet(ct, ctName))
 			ab += ct
 		}
 		if r.Exclude&f != 0 {
@@ -168,11 +168,11 @@ func (r *CharRecipe) buildCharacterList() charList {
 
 	// now remove excluded from each reqSet
 	// and remove each ReqSet from allowedSet
-	for _, req := range include {
+	for _, req := range require {
 		req.s = req.s.Difference(exS)
 		r.allowedSet = r.allowedSet.Difference(req.s)
 	}
-	r.requiredSets = include
+	r.requiredSets = require
 
 	fullABCSet := r.allowedSet.Union(r.requiredSets.union().s)
 	return strings.Split(stringFromSet(fullABCSet), "")
@@ -193,20 +193,20 @@ func (r CharRecipe) Entropy() float32 {
 // Allow - Any character from any of these sets may be present in generated password.
 //
 // Exclude - No characters from any of these sets may be present in the generated password.
-// Exclusion overrides Include and Allow.
+// Exclusion overrides Require and Allow.
 //
-// Include - At least one character from each of these sets must be present in the generated password.
+// Require - At least one character from each of these sets must be present in the generated password.
 type CharRecipe struct {
 	Length int // Length of generated password in characters
 
-	// Character types to Allow, Include (require), or Exclude in generated password
+	// Character types to Allow, Require, or Exclude in generated password
 	Allow   CTFlag // Types which may appear
-	Include CTFlag // Types which must appear (at least one from each type)
+	Require CTFlag // Types which must appear (at least one from each type)
 	Exclude CTFlag // Types must not appear
 
-	// User provided character sets for Allow, Include, and Exclude
+	// User provided character sets for Allow, Require, and Exclude
 	AllowChars   string   // Specific characters that may appear
-	IncludeSets  []string // Partially implemented
+	RequireSets  []string // Partially implemented
 	ExcludeChars string   // Specific characters that must not appear
 
 	// Following sets are computed

@@ -16,13 +16,13 @@ type reqSet struct {
 
 type reqSets []reqSet
 
-// incudeFilter checks whether a candidate password has a character
-// from each required/include character set
-func includeFilter(pwd string, include reqSets) bool {
-	if include == nil || len(include) == 0 {
+// requireFilter checks whether a candidate password has a character
+// from each required character set
+func requireFilter(pwd string, require reqSets) bool {
+	if require == nil || len(require) == 0 {
 		return true
 	}
-	for _, rset := range include {
+	for _, rset := range require {
 		// ContainsAny does not treat empty strings like empty sets
 		rs := stringFromSet(rset.s) // Separate var for debugging
 		if rset.size() > 0 && !strings.ContainsAny(pwd, rs) {
@@ -43,10 +43,10 @@ func (r CharRecipe) fullAlphabet() (charList, error) {
 // disjointify trims all the required charsets
 // and the allowed sets so that they are all mutually
 // disjoint.
-func disjointify(allowed charList, include reqSets) charList {
+func disjointify(allowed charList, required reqSets) charList {
 	abc := setFromString(strings.Join(allowed, ""))
 
-	abc = abc.Difference(include.union().s)
+	abc = abc.Difference(required.union().s)
 	abcOut := strings.Split(stringFromSet(abc), "")
 
 	return abcOut
