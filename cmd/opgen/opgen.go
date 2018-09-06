@@ -69,10 +69,11 @@ var flagCapitalize = wordlistCommand.String("capitalize", "none", "capitalize pa
 // var flagEntropy = flag.Bool("e", false, "Display entropy")
 
 func main() {
-	// flag.Parse()
-	// if len(os.Args) == 1 {
-	// 	return
-	// }
+	flag.Parse()
+	if len(os.Args) == 1 {
+		printUsage()
+		os.Exit(-1)
+	}
 
 	switch os.Args[1] {
 	case "recipe":
@@ -89,6 +90,8 @@ func main() {
 	case "wordlist":
 		wordlistCommand.Parse(os.Args[2:])
 		generateWordListPassword()
+	default:
+		printUsage()
 	}
 
 	// recipeType := rtChar
@@ -245,4 +248,47 @@ func generateCharacterPassword() {
 
 	pwd, _ := recipe.Generate()
 	fmt.Println(pwd.String())
+}
+
+func printUsage() {
+	fmt.Println(`
+opgen recipe [<recipe> | --file=<recipefile>] [--number=<n>] [--entropy]
+
+	--file      use a recipe file at the specified path
+	--number    generate <n> passwords with the same recipe (default: 1)
+	--entropy   show the entropy of the password
+
+	<recipe>: memorable, syllables, pin
+
+opgen characters [--length=<n>] [--allow=<characterclasses>]
+				[--exclude=<characterclasses>] [--require=<characterclasses>]
+				[--number=<numberofpasswords>] [--entropy]
+
+	--length    generate a password <n> characters in length (default: 20)
+	--allow     allow characters from <characterclasses> (default: all)
+	--exclude   exclude all characters from <characterclasses> regardless of
+					other settings (default: ambiguous)
+	--require   require at least one character from <characterclasses>
+					(default: none)
+	--number    generate <n> passwords with the same recipe (default: 1)
+	--entropy   show the entropy of the password
+
+	<characterclasses>: uppercase, lowercase, digits, symbols, ambiguous
+
+opgen wordlist [--list=<wordlist> | --file=<wordlistfile>] [--size=<n>]
+				[--separator=<separatorclass>] [--capitalize=<scheme>]
+				[--number=<numberofpasswords>] [--entropy]
+
+	--list         use built-in <wordlist> (default: words)
+	--file         use a wordlist file at the specified path
+	--size         generate a password with <n> elements (default: 4)
+	--separator    separate components with <separatorclass> (default: hyphen)
+	--capitalize   capitalize password according to <scheme> (default: none)
+	--number       generate <n> passwords with the same recipe (default: 1)
+	--entropy      show the entropy of the password
+
+	<wordlist>: words, syllables
+	<separatorclass>: hyphen, space, comma, period, underscore, digit, none
+	capitalization <scheme>: none, first, all, random, one
+	`)
 }
