@@ -236,7 +236,7 @@ func TestMultipleInclusion(t *testing.T) {
 	r := CharRecipe{
 		Length:      15,
 		Allow:       Lowers | Digits,
-		RequireSets: []string{oddPrimes, squares},
+		RequireSets: []string{oddPrimes, squares, vowels},
 	}
 
 	successes := 0
@@ -268,7 +268,7 @@ func TestEntropyDecrease(t *testing.T) {
 
 	require := &CharRecipe{Length: 8}
 	require.Allow = Letters | Digits
-	require.IncludeSets = []string{"a"}
+	require.RequireSets = []string{"a"}
 
 	allowH := allow.Entropy()
 	requireH := require.Entropy()
