@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -59,6 +60,7 @@ var flagNumberCR = charactersCommand.Int("number", 1, "generate <n> passwords wi
 // Wordlist flags
 var flagSize = wordlistCommand.Int("size", 4, "generate a password with <n> elements")
 var flagWordList = wordlistCommand.String("list", "words", "use built-in <wordlist>")
+var flagWordListFile = wordlistCommand.String("file", "", "use a wordlist file at the specified <path>")
 var flagSeparator = wordlistCommand.String("separator", "hyphen", "separate components with <separatorclass>")
 var flagCapitalize = wordlistCommand.String("capitalize", "none", "capitalize password according to <scheme>")
 var flagEntropyWL = wordlistCommand.Bool("entropy", false, "show the entropy of the password")
@@ -95,8 +97,7 @@ func main() {
 	for i := 1; i < *flagNumberCR+*flagNumberWL; i++ {
 		pwd, err := generator.Generate()
 		if err != nil {
-			log.Fatal("Error generating password:\n", err)
-			os.Exit(-1)
+			log.Fatalln("Error generating password:", err)
 			return
 		}
 
@@ -222,16 +223,17 @@ func parseRecipe(value string) spg.Generator {
 	return recipe
 }
 
-func parseWordList(value string) (*spg.WordList, error) {
-	var wl []string
+func parseWordList(value string) *spg.WordList {
+	var words []string
 	switch value {
 	case "words":
-		wl = spg.AgileWords
+		words = spg.AgileWords
 	case "syllables":
-		wl = spg.AgileSyllables
+		words = spg.AgileSyllables
 	}
 
-	return spg.NewWordList(wl)
+	wordList, _ := spg.NewWordList(words)
+	return wordList
 }
 
 func parseSeparator(value string) spg.SFFunction {
@@ -243,7 +245,13 @@ func parseCapitalize(value string) spg.CapScheme {
 }
 
 func wlGenerator() *spg.WLRecipe {
-	wl, _ := parseWordList(*flagWordList)
+	var wl *spg.WordList
+	if *flagWordListFile != "" {
+		wl = loadWordListFile(*flagWordListFile)
+	} else {
+		wl = parseWordList(*flagWordList)
+	}
+
 	recipe := spg.NewWLRecipe(*flagSize, wl)
 	recipe.SeparatorFunc = parseSeparator(*flagSeparator)
 	recipe.Capitalize = parseCapitalize(*flagCapitalize)
@@ -258,6 +266,20 @@ func charGenerator() *spg.CharRecipe {
 	recipe.Exclude = parseCharacterClasses(*flagExclude, defaultCharRecipe.exclude)
 
 	return recipe
+}
+
+func loadWordListFile(path string) *spg.WordList {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalln("Error opening file:", path, err)
+	}
+
+	words := strings.Fields(string(data))
+	wordList, err := spg.NewWordList(words)
+	if err != nil {
+		log.Fatalln("Error creating wordlist:", err)
+	}
+	return wordList
 }
 
 func printUsage() {
