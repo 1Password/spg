@@ -207,7 +207,7 @@ func TestDigitInclusion(t *testing.T) {
 	r := CharRecipe{
 		Length:  6,
 		Allow:   Letters,
-		Include: Digits | Symbols,
+		Require: Digits | Symbols,
 	}
 
 	successes := 0
@@ -236,7 +236,7 @@ func TestMultipleInclusion(t *testing.T) {
 	r := CharRecipe{
 		Length:      15,
 		Allow:       Lowers | Digits,
-		IncludeSets: []string{oddPrimes, squares, vowels},
+		RequireSets: []string{oddPrimes, squares},
 	}
 
 	successes := 0
