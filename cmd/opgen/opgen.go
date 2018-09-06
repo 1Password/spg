@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -42,31 +43,26 @@ var capitalizeMap = map[string]spg.CapScheme{
 	"one":    spg.CSOne,
 }
 
+// Subcommands
 var recipeCommand = flag.NewFlagSet("recipe", flag.ExitOnError)
 var wordlistCommand = flag.NewFlagSet("wordlist", flag.ExitOnError)
 var charactersCommand = flag.NewFlagSet("characters", flag.ExitOnError)
 
 // Character flags
-var flagLength = charactersCommand.Int("length", defaultCharRecipe.length, "generate a password <n> characters in length (default: 20)")
-var flagAllow = charactersCommand.String("allow", "", "allow characters from <characterclasses> (default: all)")
-var flagRequire = charactersCommand.String("require", "", "require at least one character from <characterclasses> (default: none)")
-var flagExclude = charactersCommand.String("exclude", "", "exclude all characters from <characterclasses> regardless of other settings (default: ambiguous)")
+var flagLength = charactersCommand.Int("length", defaultCharRecipe.length, "generate a password <n> characters in length")
+var flagAllow = charactersCommand.String("allow", "", "allow characters from <characterclasses>")
+var flagRequire = charactersCommand.String("require", "", "require at least one character from <characterclasses>")
+var flagExclude = charactersCommand.String("exclude", "", "exclude all characters from <characterclasses> regardless of other settings")
+var flagEntropyCR = charactersCommand.Bool("entropy", false, "show the entropy of the password")
+var flagNumberCR = charactersCommand.Int("number", 1, "generate <n> passwords with the same recipe")
 
 // Wordlist flags
-var flagSize = wordlistCommand.Int("size", 4, "generate a password with <n> elements (default: 4)")
-var flagWordList = wordlistCommand.String("list", "words", "use built-in <wordlist> (default: words)")
-var flagSeparator = wordlistCommand.String("separator", "hyphen", "separate components with <separatorclass> (default: hyphen)")
-var flagCapitalize = wordlistCommand.String("capitalize", "none", "capitalize password according to <scheme> (default: none)")
-
-// charactersCommand.String("")
-
-// This really should use subcommands, as the flags for char and wl will
-// have different meanings and defaults. But I haven't read up on how to do that.
-// var flagRecipeType = flag.String("type", "char", "character (\"char\") or wordlist (\"wl\") recipe")
-// var flagWLFile = flag.String("listfile", "", "Wordlist file")
-// var flagList = flag.String("list", "words", "Agilewords (\"words\") or AgileSyllables (\"syl\")")
-// var flagNumber = flag.Int("n", 1, "number of passwords to generate")
-// var flagEntropy = flag.Bool("e", false, "Display entropy")
+var flagSize = wordlistCommand.Int("size", 4, "generate a password with <n> elements")
+var flagWordList = wordlistCommand.String("list", "words", "use built-in <wordlist>")
+var flagSeparator = wordlistCommand.String("separator", "hyphen", "separate components with <separatorclass>")
+var flagCapitalize = wordlistCommand.String("capitalize", "none", "capitalize password according to <scheme>")
+var flagEntropyWL = wordlistCommand.Bool("entropy", false, "show the entropy of the password")
+var flagNumberWL = wordlistCommand.Int("number", 1, "generate <n> passwords with the same recipe")
 
 func main() {
 	flag.Parse()
@@ -75,6 +71,7 @@ func main() {
 		os.Exit(-1)
 	}
 
+	var generator spg.Generator
 	switch os.Args[1] {
 	case "recipe":
 		recipeCommand.Parse(os.Args[2:])
@@ -86,14 +83,29 @@ func main() {
 
 	case "characters":
 		charactersCommand.Parse(os.Args[2:])
-		generateCharacterPassword()
+		generator = charGenerator()
 	case "wordlist":
 		wordlistCommand.Parse(os.Args[2:])
-		generateWordListPassword()
+		generator = wlGenerator()
 	default:
 		printUsage()
+		os.Exit(-1)
 	}
 
+	for i := 1; i < *flagNumberCR+*flagNumberWL; i++ {
+		pwd, err := generator.Generate()
+		if err != nil {
+			log.Fatal("Error generating password:\n", err)
+			os.Exit(-1)
+			return
+		}
+
+		if *flagEntropyWL || *flagEntropyCR {
+			fmt.Printf("%.2f:\t%s\n", generator.Entropy(), pwd.String())
+		} else {
+			fmt.Println(pwd.String())
+		}
+	}
 	// recipeType := rtChar
 	// switch *flagRecipeType {
 	// case "wl":
@@ -230,24 +242,22 @@ func parseCapitalize(value string) spg.CapScheme {
 	return capitalizeMap[value]
 }
 
-func generateWordListPassword() {
+func wlGenerator() *spg.WLRecipe {
 	wl, _ := parseWordList(*flagWordList)
 	recipe := spg.NewWLRecipe(*flagSize, wl)
 	recipe.SeparatorFunc = parseSeparator(*flagSeparator)
 	recipe.Capitalize = parseCapitalize(*flagCapitalize)
 
-	pwd, _ := recipe.Generate()
-	fmt.Println(pwd.String())
+	return recipe
 }
 
-func generateCharacterPassword() {
+func charGenerator() *spg.CharRecipe {
 	recipe := spg.NewCharRecipe(*flagLength)
 	recipe.Allow = parseCharacterClasses(*flagAllow, defaultCharRecipe.allow)
 	recipe.Include = parseCharacterClasses(*flagRequire, defaultCharRecipe.require)
 	recipe.Exclude = parseCharacterClasses(*flagExclude, defaultCharRecipe.exclude)
 
-	pwd, _ := recipe.Generate()
-	fmt.Println(pwd.String())
+	return recipe
 }
 
 func printUsage() {
