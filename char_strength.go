@@ -18,7 +18,7 @@ func (r CharRecipe) entropyWithRequired() float32 {
 		required.Add(req.s)
 	}
 
-	intValue := N(allowed, required, r.Length)
+	intValue := n(allowed, required, r.Length)
 	floatValue := big.NewFloat(0).SetInt(intValue)
 
 	// big.Float doesn't have a Log function, so we need to stuff the
@@ -32,10 +32,10 @@ func (r CharRecipe) entropyWithRequired() float32 {
 	return float32(math.Log2(float64Value))
 }
 
-// N is the number of possible passwords that can be generated.
+// n is the number of possible passwords that can be generated.
 // Unfortunately, we can't take the log until the very end, so we will
 // be dealing with some very large numbers.
-func N(allowed set.Set, required set.Set, length int) *big.Int {
+func n(allowed set.Set, required set.Set, length int) *big.Int {
 	// totalCount is the total number of permutations possible when a
 	// password of length n is generated from the set R, which is the
 	// union of all sets in the password recipe.
@@ -69,7 +69,7 @@ func N(allowed set.Set, required set.Set, length int) *big.Int {
 	rejectedCount := sumAll(
 		rejectedSubsets,
 		func(subset set.Set) *big.Int {
-			return N(allowed, subset, length)
+			return n(allowed, subset, length)
 		},
 	)
 

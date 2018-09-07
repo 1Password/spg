@@ -232,10 +232,11 @@ func TestDigitInclusion(t *testing.T) {
 func TestMultipleInclusion(t *testing.T) {
 	oddPrimes := "357"
 	squares := "49" // OK, squares greater than 1
+	vowels := "aeiouAEIOU"
 	r := CharRecipe{
-		Length:      18,
+		Length:      15,
 		Allow:       Lowers | Digits,
-		RequireSets: []string{oddPrimes, squares},
+		RequireSets: []string{oddPrimes, squares, vowels},
 	}
 
 	successes := 0
@@ -243,16 +244,37 @@ func TestMultipleInclusion(t *testing.T) {
 	for i := 0; i < trials; i++ {
 		p, err := r.Generate()
 		if err == nil {
+			pwd := p.String() // Nice to have variable for debugging
 			successes++
-			if !strings.ContainsAny(p.String(), oddPrimes) {
+			if !strings.ContainsAny(pwd, oddPrimes) {
 				t.Errorf("%q does not contain an odd prime", p.String())
 			}
-			if !strings.ContainsAny(p.String(), squares) {
+			if !strings.ContainsAny(pwd, squares) {
 				t.Errorf("%q does not contain a square", p.String())
+			}
+			if !strings.ContainsAny(pwd, vowels) {
+				t.Errorf("%q does not contain a vowel", p.String())
 			}
 		}
 	}
 	if testing.Verbose() {
 		fmt.Printf("Able to generate %d length strings %d/%d times\n", r.Length, successes, trials)
 	}
+}
+
+func TestEntropyDecrease(t *testing.T) {
+	allow := &CharRecipe{Length: 8}
+	allow.Allow = Letters | Digits
+
+	require := &CharRecipe{Length: 8}
+	require.Allow = Letters | Digits
+	require.RequireSets = []string{"a"}
+
+	allowH := allow.Entropy()
+	requireH := require.Entropy()
+
+	if !(requireH < allowH) {
+		t.Errorf("H in allow case (%f) >= require case (%f)", allowH, requireH)
+	}
+
 }
