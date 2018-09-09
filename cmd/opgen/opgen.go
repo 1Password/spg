@@ -16,6 +16,13 @@ const (
 	rtWordlist
 )
 
+// Exit statuses for os.Exit(). Follow narrow Unix convenstions (1-127 for errors, 0 for success)
+const (
+	ExitSuccess  = iota // Success must be 0
+	ExitCatchall        // Catch all should be 1. For all otherwise unspecified errors
+	ExitUsage           // Usage errors.
+)
+
 type characterclass string
 
 var ccMap = map[string]spg.CTFlag{
@@ -70,7 +77,7 @@ func main() {
 	flag.Parse()
 	if len(os.Args) == 1 {
 		printUsage()
-		os.Exit(-1)
+		os.Exit(ExitUsage)
 	}
 
 	var generator spg.Generator
@@ -91,7 +98,7 @@ func main() {
 		generator = wlGenerator()
 	default:
 		printUsage()
-		os.Exit(-1)
+		os.Exit(ExitUsage)
 	}
 
 	for i := 1; i < *flagNumberCR+*flagNumberWL; i++ {
@@ -218,7 +225,7 @@ func parseCharacterClasses(value string, defaults []string) spg.CTFlag {
 func parseRecipe(value string) spg.Generator {
 	recipe, ok := recipes[value]
 	if !ok {
-		os.Exit(1)
+		os.Exit(ExitUsage)
 	}
 	return recipe
 }
@@ -232,7 +239,7 @@ func parseWordList(value string) *spg.WordList {
 		words = spg.AgileSyllables
 	default:
 		printUsage()
-		os.Exit(1)
+		os.Exit(ExitUsage)
 	}
 
 	wordList, _ := spg.NewWordList(words)
