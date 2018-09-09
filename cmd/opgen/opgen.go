@@ -230,6 +230,9 @@ func parseWordList(value string) *spg.WordList {
 		words = spg.AgileWords
 	case "syllables":
 		words = spg.AgileSyllables
+	default:
+		printUsage()
+		os.Exit(1)
 	}
 
 	wordList, _ := spg.NewWordList(words)
