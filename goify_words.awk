@@ -1,7 +1,7 @@
 ## creates Go code defining a string slice with list of words
 
 # Usage
-# awk -f goify_syllables.awk < /path/to/AgileWords.txt > agilewords.go
+# awk -f goify_words.awk < /path/to/AgileWords.txt > agilewords.go
 
 BEGIN {
     print "package spg\n";
