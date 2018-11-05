@@ -237,3 +237,8 @@ func (r CharRecipe) Alphabet() string {
 	sort.Strings(s)
 	return strings.Join(s, "")
 }
+
+/**
+ ** Copyright 2018 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/

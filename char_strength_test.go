@@ -76,3 +76,8 @@ func TestEntropy(t *testing.T) {
 		t.Errorf("entropy should be -Inf, was %f", e)
 	}
 }
+
+/**
+ ** Copyright 2018 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/

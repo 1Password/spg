@@ -103,3 +103,8 @@ func unionAll(elements set.Set) set.Set {
 	}
 	return combined
 }
+
+/**
+ ** Copyright 2018 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/
