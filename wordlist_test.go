@@ -14,10 +14,10 @@ const doFallibleTests = false
 const entCompTolerance = 10000 // entropy must be correct to 1 part in ten thousand
 
 var abWords []string                            // this is where we will put the wordlist for testing
-const wordsFilePath = "testdata/AgileWords.txt" // relative to where test in invoked
+const wordsFilePath = "testdata/agwordlist.txt" // relative to where test in invoked
 
-var abSyllables []string                               // this is where we will put the wordlist for testing
-const syllableFilePath = "testdata/AgileSyllables.txt" // relative to where test in invoked
+var abSyllables []string                            // this is where we will put the wordlist for testing
+const syllableFilePath = "testdata/agsyllables.txt" // relative to where test in invoked
 
 func init() {
 	wlFile, err := os.Open(wordsFilePath)
@@ -316,8 +316,7 @@ func TestNonLetterWL(t *testing.T) {
 
 func TestWeirdCapitalizationWL(t *testing.T) {
 	cl := []string{"正確", "Polish", "polish", "one", "two", "three", "4", "five", "one"}
-	capAble := 4 // "one", "two", "three", "five"
-	nonDupLen := 8
+	nonDupLen := 7
 	length := 5
 	wl, err := NewWordList(cl)
 	if err != nil {
@@ -328,9 +327,8 @@ func TestWeirdCapitalizationWL(t *testing.T) {
 	a.Capitalize = CSOne
 
 	// Because only some of the words in the wordlist capitalize, the
-	// a.Capitalize = CSOne setting makes a tricky difference
+	// a.Capitalize = CSOne setting does not increase entropy
 	expectedEnt := float32(math.Log2(float64(nonDupLen)) * float64(length))
-	expectedEnt += float32(math.Log2(float64(length))) * (float32(capAble) / float32(nonDupLen))
 
 	for i := 0; i < 20; i++ {
 		p, err := a.Generate()

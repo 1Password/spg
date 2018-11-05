@@ -63,7 +63,7 @@ func (wl WordList) Size() uint32 {
 }
 
 // NewWordList does what it says on the tin. Pass it a slice of strings
-// It will remove duplicates from the slice provided, and it 
+// It will remove duplicates from the slice provided, and it
 // will count up how many words on the list can be changed through capitalization
 // This isn't cheap, so it is best to create each word list once and keep it around
 // as long as you need it.
@@ -79,25 +79,37 @@ func NewWordList(list []string) (*WordList, error) {
 
 	// We want to ensure that no item appears more than once
 	unique := make(map[string]bool)
-	var ourWords []string // Don't create with make. We need this to start with zero length
+
 	for _, word := range list {
 		if !unique[word] {
-			ourWords = append(ourWords, word)
 			unique[word] = true
 		}
 	}
 
 	// A second pass to find out how many words have distinct capitalizations
-	// Although it would have been possible to not use a second pass, that would get
-	// ugly if we also want to address the "polish, Polish" case.
+	// This also treats "Polish" and "polish" as duplicates, and will
+	// remove the Capitalized one from the list
 	//
 	// This pass also assumes that everything in unique is "true"
 	unCapable := 0
 	for w := range unique {
-		cap := strings.Title(w)
-		if unique[cap] {
-			unCapable++
+		if unique[w] { // it may have been deleted since range was computed
+			cap := strings.Title(w)
+			if unique[cap] {
+				if cap != w { // w is "polish"
+					delete(unique, cap) // delete won't change what is in range
+				} else {
+					unCapable++
+				}
+			}
 		}
+	}
+
+	// third pass, because life sucks
+	var ourWords []string
+	for w := range unique {
+		ourWords = append(ourWords, w)
+
 	}
 
 	if len(list) > len(ourWords) {
@@ -113,9 +125,7 @@ func NewWordList(list []string) (*WordList, error) {
 	return result, nil
 }
 
-// Generate a password using the wordlist generator. Requires that the generator already be set up
-// Although we are passing a pointer to a generator, that is only to avoid some
-// memory copying. This does not change g.
+// Generate a password using the wordlist recipe.
 func (r WLRecipe) Generate() (*Password, error) {
 	p := &Password{}
 
@@ -175,18 +185,28 @@ func (r WLRecipe) Generate() (*Password, error) {
 	return p, nil
 }
 
-// Entropy returns the entropy from the recipe. It needs to know things
-// about the wordlist used.
+// Entropy returns the min-entropy from the recipe. It needs to know things
+// about the wordlist used as well as other details of the recipe.
+//
+// When the generator produces uniform distirbution (the typical case) min-entropy
+// and Shannon entropy are the same. If capitalization is used and the word list
+// contains members whose capitalization does not yield a distinct element,
+// the distribution becomes non-uniform.
 func (r WLRecipe) Entropy() float32 {
 	size := int(r.Size())
 	ent := entropySimple(r.Length, size)
-	switch r.Capitalize {
-	case CSRandom:
-		ent += FloatE(float64(r.Length) * r.list.capitalizeRatio())
-	case CSOne:
-		ent += FloatE(math.Log2(float64(r.Length)) * r.list.capitalizeRatio())
-	default: // No change in entropy
+
+	// Contribution of Capitalization scheme
+	if r.list.isAllCapitalizable() {
+		switch r.Capitalize {
+		case CSRandom:
+			ent += FloatE(float64(r.Length))
+		case CSOne:
+			ent += FloatE(math.Log2(float64(r.Length)))
+		default: // No change in entropy
+		}
 	}
+	// else there is no additional entropy contribution from capitalization
 
 	// Entropy contribution of separators
 	sepEnt := FloatE(0.0)
@@ -196,6 +216,13 @@ func (r WLRecipe) Entropy() float32 {
 	ent += (FloatE(r.Length) - 1.0) * sepEnt
 
 	return float32(ent)
+}
+
+func (wl *WordList) isAllCapitalizable() bool {
+	if wl.unCapitalizableCount > 0 {
+		return false
+	}
+	return true
 }
 
 func (wl *WordList) capitalizeRatio() float64 {
@@ -215,6 +242,15 @@ func (wl *WordList) capitalizeRatio() float64 {
 // (to be used within a password) and the entropy it contributes
 type SFFunction func() (string, FloatE)
 
+// NewSFFunction makes a Separator Function from a CharRecipe
+func NewSFFunction(r CharRecipe) SFFunction {
+
+	// I need to learn how to proper create factories.
+	var sf SFFunction
+	sf = func() (string, FloatE) { return sfWrap(r) }
+	return sf
+}
+
 // Pre-baked Separator functions
 
 func sfWrap(r CharRecipe) (string, FloatE) {
@@ -223,35 +259,15 @@ func sfWrap(r CharRecipe) (string, FloatE) {
 }
 
 // SFNone empty separator
-func SFNone() (string, FloatE) { return "", 0.0 }
+// func SFNone() (string, FloatE) { return "", 0.0 }
 
-// SFDigits1 each separator is a randomly chosen digit
-func SFDigits1() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 1, Allow: Digits})
-}
-
-// SFDigits2 each separator is two randomly chosen digits
-func SFDigits2() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 2, Allow: Digits})
-}
-
-// SFDigitsNoAmbiguous1 each separator is a non-ambiguous digit
-func SFDigitsNoAmbiguous1() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 1, Allow: Digits, Exclude: Ambiguous})
-}
-
-// SFDigitsNoAmbiguous2 each separator is a pair of randomly chosen non-ambiguous digits
-func SFDigitsNoAmbiguous2() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 2, Allow: Digits, Exclude: Ambiguous})
-}
-
-// SFSymbols each separator is a randomly chosen symbol
-func SFSymbols() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 1, Allow: Symbols})
-}
-
-// SFDigitsSymbols each separator is a randomly chosen digit or symbol
-func SFDigitsSymbols() (string, FloatE) {
-	return sfWrap(CharRecipe{Length: 1, Allow: Symbols | Digits})
-
-}
+// Pre-baked Separator functions
+var (
+	SFNone               SFFunction = func() (string, FloatE) { return "", FloatE(0.0) }                      // Empty separator
+	SFDigits1                       = NewSFFunction(CharRecipe{Length: 1, Allow: Digits})                     // Single digit separator
+	SFDigits2                       = NewSFFunction(CharRecipe{Length: 2, Allow: Digits})                     // Double digit separator
+	SFDigitsNoAmbiguous1            = NewSFFunction(CharRecipe{Length: 1, Allow: Digits, Exclude: Ambiguous}) // Single digit, no ambiguous
+	SFDigitsNoAmbiguous2            = NewSFFunction(CharRecipe{Length: 2, Allow: Digits, Exclude: Ambiguous}) // Double digit, no ambiguous
+	SFSymbols                       = NewSFFunction(CharRecipe{Length: 1, Allow: Symbols})                    // Symbols
+	SFDigitsSymbols                 = NewSFFunction(CharRecipe{Length: 1, Allow: Symbols | Digits})           // Symbols and digits
+)

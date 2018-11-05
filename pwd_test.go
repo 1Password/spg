@@ -200,3 +200,81 @@ func TestExampleCharRecipe(t *testing.T) {
 	ExampleCharRecipe_pin()
 	ExampleCharRecipe_lowerdigits()
 }
+
+// Now let's play with inclusion requirements. Sadly, these may be statistical tests
+
+func TestDigitInclusion(t *testing.T) {
+	r := CharRecipe{
+		Length:  6,
+		Allow:   Letters,
+		Require: Digits | Symbols,
+	}
+
+	successes := 0
+	trials := 50
+	for i := 0; i < trials; i++ {
+		p, err := r.Generate()
+		if err == nil {
+			successes++
+			if !strings.ContainsAny(p.String(), "0123456789") {
+				t.Errorf("%q does not contain a digit", p.String())
+			}
+			if !strings.ContainsAny(p.String(), ctSymbols) {
+				t.Errorf("%q does not contain a symbol", p.String())
+			}
+		}
+	}
+	if testing.Verbose() {
+		fmt.Printf("Able to generate %d length strings %d/%d times\n", r.Length, successes, trials)
+	}
+}
+
+func TestMultipleInclusion(t *testing.T) {
+	oddPrimes := "357"
+	squares := "49" // OK, squares greater than 1
+	vowels := "aeiouAEIOU"
+	r := CharRecipe{
+		Length:      15,
+		Allow:       Lowers | Digits,
+		RequireSets: []string{oddPrimes, squares, vowels},
+	}
+
+	successes := 0
+	trials := 50
+	for i := 0; i < trials; i++ {
+		p, err := r.Generate()
+		if err == nil {
+			pwd := p.String() // Nice to have variable for debugging
+			successes++
+			if !strings.ContainsAny(pwd, oddPrimes) {
+				t.Errorf("%q does not contain an odd prime", p.String())
+			}
+			if !strings.ContainsAny(pwd, squares) {
+				t.Errorf("%q does not contain a square", p.String())
+			}
+			if !strings.ContainsAny(pwd, vowels) {
+				t.Errorf("%q does not contain a vowel", p.String())
+			}
+		}
+	}
+	if testing.Verbose() {
+		fmt.Printf("Able to generate %d length strings %d/%d times\n", r.Length, successes, trials)
+	}
+}
+
+func TestEntropyDecrease(t *testing.T) {
+	allow := &CharRecipe{Length: 8}
+	allow.Allow = Letters | Digits
+
+	require := &CharRecipe{Length: 8}
+	require.Allow = Letters | Digits
+	require.RequireSets = []string{"a"}
+
+	allowH := allow.Entropy()
+	requireH := require.Entropy()
+
+	if !(requireH < allowH) {
+		t.Errorf("H in allow case (%f) >= require case (%f)", allowH, requireH)
+	}
+
+}

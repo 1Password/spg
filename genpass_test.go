@@ -12,7 +12,11 @@ func TestGeneratorInterface(t *testing.T) {
 	)
 
 	g = createSizeFourGenerator("chars")
-	p, _ = g.Generate()
+	p, err := g.Generate()
+	if err != nil {
+		t.Errorf("Generation error: %v", err)
+	}
+
 	if len(p.String()) != 4 {
 		t.Errorf("Could not create a char passsword using the Generator interface: %s", p.String())
 	}
