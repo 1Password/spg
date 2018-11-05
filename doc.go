@@ -1,5 +1,6 @@
 /*
-Package spg provides AgileBits' Strong Password Generator engine
+Package spg provides 1Password's Strong Password Generator engine for uniform and flexible password generation.
+
 
 The Strong Password Generator package offers the underlying engine for flexible
 specification of generated password requirements and ensuring that the generated
