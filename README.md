@@ -8,7 +8,7 @@ Use `go doc` for package documentation, or `godoc -http=:6060` to run a document
 
 ## License
 
-1Password's spg is copyright 2018, AgileBit's Inc and licensed under [version 2.0 of the Apache License Agreement](./LICENSE).
+1Password's spg is copyright 2018, AgileBits Inc and licensed under [version 2.0 of the Apache License Agreement](./LICENSE).
 
 ## Vendored dependencies
 
