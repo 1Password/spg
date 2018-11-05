@@ -309,3 +309,8 @@ func (ts Tokens) Atoms() []string { return ts.ofType(AtomType) }
 // is used repeatedly to separate subsequent tokens.
 // If this is nil, it is taken as nil no separators between tokens
 func (ts Tokens) Separators() []string { return ts.ofType(SeparatorType) }
+
+/**
+ ** Copyright 2018 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/

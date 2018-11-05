@@ -93,3 +93,8 @@ func int31n(n uint32) uint32 {
 	}
 	return v % n
 }
+
+/**
+ ** Copyright 2018 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/

@@ -70,6 +70,10 @@ passed to the generator, with the exception of the interaction of capitalizaton 
 In those cases, min-entropy is reported.
 
 Entropy is a function solely of the recipe.
+
+License
+
+This package is Copyright 2017, 2018 by AgileBits, Inc and is licensed under the Apache 2.0 agreement.
 */
 package spg
 

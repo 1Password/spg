@@ -172,3 +172,8 @@ func TestSetFromEmptyString(t *testing.T) {
 	}
 
 }
+
+/**
+ ** Copyright 2017, 2018 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/
