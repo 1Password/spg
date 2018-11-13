@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agilebits/spg"
+	"go.1password.io/spg"
 )
 
 const (
@@ -272,7 +272,7 @@ func wlGenerator() *spg.WLRecipe {
 func charGenerator() *spg.CharRecipe {
 	recipe := spg.NewCharRecipe(*flagLength)
 	recipe.Allow = parseCharacterClasses(*flagAllow, defaultCharRecipe.allow)
-	recipe.Include = parseCharacterClasses(*flagRequire, defaultCharRecipe.require)
+	recipe.Require = parseCharacterClasses(*flagRequire, defaultCharRecipe.require)
 	recipe.Exclude = parseCharacterClasses(*flagExclude, defaultCharRecipe.exclude)
 
 	return recipe
