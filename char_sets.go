@@ -116,3 +116,8 @@ func (r reqSet) size() int {
 	}
 	return r.s.Cardinality()
 }
+
+/**
+ ** Copyright 2018 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/

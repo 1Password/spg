@@ -138,3 +138,8 @@ func TestTokenizer(t *testing.T) {
 		}
 	}
 }
+
+/**
+ ** Copyright 2018 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/
