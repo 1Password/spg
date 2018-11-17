@@ -11,14 +11,7 @@ import (
 // passwords. The trick is for when a character is _required_ from a particular set
 
 func (r CharRecipe) entropyWithRequired() float32 {
-	allowed := set.NewSet()
-	allowed.Add(r.allowedSet)
-	required := set.NewSet()
-	for _, req := range r.requiredSets {
-		required.Add(req.s)
-	}
-
-	intValue := n(allowed, required, r.Length)
+	intValue := r.n()
 	floatValue := big.NewFloat(0).SetInt(intValue)
 
 	// big.Float doesn't have a Log function, so we need to stuff the
@@ -30,6 +23,17 @@ func (r CharRecipe) entropyWithRequired() float32 {
 	}
 
 	return float32(math.Log2(float64Value))
+}
+
+func (r CharRecipe) n() *big.Int {
+	allowed := set.NewSet()
+	allowed.Add(r.allowedSet)
+	required := set.NewSet()
+	for _, req := range r.requiredSets {
+		required.Add(req.s)
+	}
+
+	return n(allowed, required, r.Length)
 }
 
 // n is the number of possible passwords that can be generated.
