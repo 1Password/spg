@@ -61,8 +61,7 @@ var flagLength = charactersCommand.Int("length", defaultCharRecipe.length, "gene
 var flagAllow = charactersCommand.String("allow", "", "allow characters from <characterclasses>")
 var flagRequire = charactersCommand.String("require", "", "require at least one character from <characterclasses>")
 var flagExclude = charactersCommand.String("exclude", "", "exclude all characters from <characterclasses> regardless of other settings")
-var flagEntropyCR = charactersCommand.Bool("entropy", false, "show the entropy of the password")
-var flagNumberCR = charactersCommand.Int("number", 1, "generate <n> passwords with the same recipe")
+var flagEntropyCR = charactersCommand.Bool("entropy", false, "show the entropy of the password recipe")
 
 // Wordlist flags
 var flagSize = wordlistCommand.Int("size", 4, "generate a password with <n> elements")
@@ -70,8 +69,7 @@ var flagWordList = wordlistCommand.String("list", "words", "use built-in <wordli
 var flagWordListFile = wordlistCommand.String("file", "", "use a wordlist file at the specified <path>")
 var flagSeparator = wordlistCommand.String("separator", "hyphen", "separate components with <separatorclass>")
 var flagCapitalize = wordlistCommand.String("capitalize", "none", "capitalize password according to <scheme>")
-var flagEntropyWL = wordlistCommand.Bool("entropy", false, "show the entropy of the password")
-var flagNumberWL = wordlistCommand.Int("number", 1, "generate <n> passwords with the same recipe")
+var flagEntropyWL = wordlistCommand.Bool("entropy", false, "show the entropy of the password recipe")
 
 func main() {
 	flag.Parse()
@@ -101,18 +99,16 @@ func main() {
 		os.Exit(ExitUsage)
 	}
 
-	for i := 1; i < *flagNumberCR+*flagNumberWL; i++ {
+	if *flagEntropyWL || *flagEntropyCR {
+		fmt.Printf("%.2f\n", generator.Entropy())
+	} else {
 		pwd, err := generator.Generate()
 		if err != nil {
 			log.Fatalln("Error generating password:", err)
 			return
 		}
 
-		if *flagEntropyWL || *flagEntropyCR {
-			fmt.Printf("%.2f:\t%s\n", generator.Entropy(), pwd.String())
-		} else {
-			fmt.Println(pwd.String())
-		}
+		fmt.Println(pwd.String())
 	}
 	// recipeType := rtChar
 	// switch *flagRecipeType {
@@ -294,17 +290,16 @@ func loadWordListFile(path string) *spg.WordList {
 
 func printUsage() {
 	fmt.Println(`
-opgen recipe [<recipe> | --file=<recipefile>] [--number=<n>] [--entropy]
+opgen recipe [<recipe> | --file=<recipefile>] [--entropy]
 
 	--file      use a recipe file at the specified path
-	--number    generate <n> passwords with the same recipe (default: 1)
-	--entropy   show the entropy of the password
+	--entropy   show the entropy of the password recipe
 
 	<recipe>: memorable, syllables, pin
 
 opgen characters [--length=<n>] [--allow=<characterclasses>]
 				[--exclude=<characterclasses>] [--require=<characterclasses>]
-				[--number=<numberofpasswords>] [--entropy]
+				[--entropy]
 
 	--length    generate a password <n> characters in length (default: 20)
 	--allow     allow characters from <characterclasses> (default: all)
@@ -312,22 +307,20 @@ opgen characters [--length=<n>] [--allow=<characterclasses>]
 					other settings (default: ambiguous)
 	--require   require at least one character from <characterclasses>
 					(default: none)
-	--number    generate <n> passwords with the same recipe (default: 1)
-	--entropy   show the entropy of the password
+	--entropy   show the entropy of the password recipe
 
 	<characterclasses>: uppercase, lowercase, digits, symbols, ambiguous
 
 opgen wordlist [--list=<wordlist> | --file=<wordlistfile>] [--size=<n>]
 				[--separator=<separatorclass>] [--capitalize=<scheme>]
-				[--number=<numberofpasswords>] [--entropy]
+				[--entropy]
 
 	--list         use built-in <wordlist> (default: words)
 	--file         use a wordlist file at the specified path
 	--size         generate a password with <n> elements (default: 4)
 	--separator    separate components with <separatorclass> (default: hyphen)
 	--capitalize   capitalize password according to <scheme> (default: none)
-	--number       generate <n> passwords with the same recipe (default: 1)
-	--entropy      show the entropy of the password
+	--entropy      show the entropy of the password recipe
 
 	<wordlist>: words, syllables
 	<separatorclass>: hyphen, space, comma, period, underscore, digit, none
