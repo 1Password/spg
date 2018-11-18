@@ -294,9 +294,11 @@ func loadWordListFile(path string) *spg.WordList {
 
 func printUsage() {
 	fmt.Println(`
-demo [--length=<n>] [--require=<characterclasses>]
-     [--allow=<characterclasses>] [--exclude=<characterclasses>]
-     [--entropy]
+Generate a password or get the entropy of a password recipe
+
+Usage: demo [--length=<n>] [--require=<characterclasses>]
+            [--allow=<characterclasses>] [--exclude=<characterclasses>]
+            [--entropy]
 
     --length    generate a password <n> characters in length (default: 20)
     --require   require at least one character from <characterclasses>
