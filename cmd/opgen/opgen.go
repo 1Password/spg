@@ -31,6 +31,8 @@ var ccMap = map[string]spg.CTFlag{
 	"digits":    spg.Digits,
 	"symbols":   spg.Symbols,
 	"ambiguous": spg.Ambiguous,
+	"all":       spg.All,
+	"none":      spg.None,
 }
 
 var separatorMap = map[string]spg.SFFunction{
@@ -52,54 +54,56 @@ var capitalizeMap = map[string]spg.CapScheme{
 }
 
 // Subcommands
-var recipeCommand = flag.NewFlagSet("recipe", flag.ExitOnError)
-var wordlistCommand = flag.NewFlagSet("wordlist", flag.ExitOnError)
-var charactersCommand = flag.NewFlagSet("characters", flag.ExitOnError)
+// var recipeCommand = flag.NewFlagSet("recipe", flag.ExitOnError)
+// var wordlistCommand = flag.NewFlagSet("wordlist", flag.ExitOnError)
+// var charactersCommand = flag.NewFlagSet("characters", flag.ExitOnError)
 
 // Character flags
-var flagLength = charactersCommand.Int("length", defaultCharRecipe.length, "generate a password <n> characters in length")
-var flagAllow = charactersCommand.String("allow", "", "allow characters from <characterclasses>")
-var flagRequire = charactersCommand.String("require", "", "require at least one character from <characterclasses>")
-var flagExclude = charactersCommand.String("exclude", "", "exclude all characters from <characterclasses> regardless of other settings")
-var flagEntropyCR = charactersCommand.Bool("entropy", false, "show the entropy of the password recipe")
+var flagLength = flag.Int("length", defaultCharRecipe.length, "generate a password <n> characters in length")
+var flagAllow = flag.String("allow", "", "allow characters from <characterclasses>")
+var flagRequire = flag.String("require", "", "require at least one character from <characterclasses>")
+var flagExclude = flag.String("exclude", "", "exclude all characters from <characterclasses> regardless of other settings")
+var flagEntropyCR = flag.Bool("entropy", false, "show the entropy of the password recipe")
+var flagHelp = flag.Bool("help", false, "show usage information")
 
 // Wordlist flags
-var flagSize = wordlistCommand.Int("size", 4, "generate a password with <n> elements")
-var flagWordList = wordlistCommand.String("list", "words", "use built-in <wordlist>")
-var flagWordListFile = wordlistCommand.String("file", "", "use a wordlist file at the specified <path>")
-var flagSeparator = wordlistCommand.String("separator", "hyphen", "separate components with <separatorclass>")
-var flagCapitalize = wordlistCommand.String("capitalize", "none", "capitalize password according to <scheme>")
-var flagEntropyWL = wordlistCommand.Bool("entropy", false, "show the entropy of the password recipe")
+// var flagSize = wordlistCommand.Int("size", 4, "generate a password with <n> elements")
+// var flagWordList = wordlistCommand.String("list", "words", "use built-in <wordlist>")
+// var flagWordListFile = wordlistCommand.String("file", "", "use a wordlist file at the specified <path>")
+// var flagSeparator = wordlistCommand.String("separator", "hyphen", "separate components with <separatorclass>")
+// var flagCapitalize = wordlistCommand.String("capitalize", "none", "capitalize password according to <scheme>")
+// var flagEntropyWL = wordlistCommand.Bool("entropy", false, "show the entropy of the password recipe")
 
 func main() {
 	flag.Parse()
-	if len(os.Args) == 1 {
+	if *flagHelp {
 		printUsage()
 		os.Exit(ExitUsage)
 	}
 
-	var generator spg.Generator
-	switch os.Args[1] {
-	case "recipe":
-		recipeCommand.Parse(os.Args[2:])
+	// var generator spg.Generator
+	// switch os.Args[1] {
+	// case "recipe":
+	// 	recipeCommand.Parse(os.Args[2:])
 
-		// recipe := parseRecipe(*flagRecipe)
+	// 	// recipe := parseRecipe(*flagRecipe)
 
-		// pwd, _ := recipe.Generate()
-		// fmt.Println(pwd.String())
+	// 	// pwd, _ := recipe.Generate()
+	// 	// fmt.Println(pwd.String())
 
-	case "characters":
-		charactersCommand.Parse(os.Args[2:])
-		generator = charGenerator()
-	case "wordlist":
-		wordlistCommand.Parse(os.Args[2:])
-		generator = wlGenerator()
-	default:
-		printUsage()
-		os.Exit(ExitUsage)
-	}
+	// case "characters":
+	// 	charactersCommand.Parse(os.Args[2:])
+	// 	generator = charGenerator()
+	// case "wordlist":
+	// 	wordlistCommand.Parse(os.Args[2:])
+	// 	generator = wlGenerator()
+	// default:
+	// 	printUsage()
+	// 	os.Exit(ExitUsage)
+	// }
+	generator := charGenerator()
 
-	if *flagEntropyWL || *flagEntropyCR {
+	if *flagEntropyCR {
 		fmt.Printf("%.2f\n", generator.Entropy())
 	} else {
 		pwd, err := generator.Generate()
@@ -250,20 +254,20 @@ func parseCapitalize(value string) spg.CapScheme {
 	return capitalizeMap[value]
 }
 
-func wlGenerator() *spg.WLRecipe {
-	var wl *spg.WordList
-	if *flagWordListFile != "" {
-		wl = loadWordListFile(*flagWordListFile)
-	} else {
-		wl = parseWordList(*flagWordList)
-	}
+// func wlGenerator() *spg.WLRecipe {
+// 	var wl *spg.WordList
+// 	if *flagWordListFile != "" {
+// 		wl = loadWordListFile(*flagWordListFile)
+// 	} else {
+// 		wl = parseWordList(*flagWordList)
+// 	}
 
-	recipe := spg.NewWLRecipe(*flagSize, wl)
-	recipe.SeparatorFunc = parseSeparator(*flagSeparator)
-	recipe.Capitalize = parseCapitalize(*flagCapitalize)
+// 	recipe := spg.NewWLRecipe(*flagSize, wl)
+// 	recipe.SeparatorFunc = parseSeparator(*flagSeparator)
+// 	recipe.Capitalize = parseCapitalize(*flagCapitalize)
 
-	return recipe
-}
+// 	return recipe
+// }
 
 func charGenerator() *spg.CharRecipe {
 	recipe := spg.NewCharRecipe(*flagLength)
@@ -290,40 +294,19 @@ func loadWordListFile(path string) *spg.WordList {
 
 func printUsage() {
 	fmt.Println(`
-opgen recipe [<recipe> | --file=<recipefile>] [--entropy]
+demo [--length=<n>] [--require=<characterclasses>]
+     [--allow=<characterclasses>] [--exclude=<characterclasses>]
+     [--entropy]
 
-	--file      use a recipe file at the specified path
-	--entropy   show the entropy of the password recipe
+    --length    generate a password <n> characters in length (default: 20)
+    --require   require at least one character from <characterclasses>
+                    (default: lowercase, uppercase, digits)
+    --allow     allow characters from <characterclasses> (default: none)
+    --exclude   exclude all characters from <characterclasses> regardless of
+                    other settings (default: ambiguous)
+    --entropy   show the entropy of the password recipe
+    --help      show this help information
 
-	<recipe>: memorable, syllables, pin
-
-opgen characters [--length=<n>] [--allow=<characterclasses>]
-				[--exclude=<characterclasses>] [--require=<characterclasses>]
-				[--entropy]
-
-	--length    generate a password <n> characters in length (default: 20)
-	--allow     allow characters from <characterclasses> (default: all)
-	--exclude   exclude all characters from <characterclasses> regardless of
-					other settings (default: ambiguous)
-	--require   require at least one character from <characterclasses>
-					(default: none)
-	--entropy   show the entropy of the password recipe
-
-	<characterclasses>: uppercase, lowercase, digits, symbols, ambiguous
-
-opgen wordlist [--list=<wordlist> | --file=<wordlistfile>] [--size=<n>]
-				[--separator=<separatorclass>] [--capitalize=<scheme>]
-				[--entropy]
-
-	--list         use built-in <wordlist> (default: words)
-	--file         use a wordlist file at the specified path
-	--size         generate a password with <n> elements (default: 4)
-	--separator    separate components with <separatorclass> (default: hyphen)
-	--capitalize   capitalize password according to <scheme> (default: none)
-	--entropy      show the entropy of the password recipe
-
-	<wordlist>: words, syllables
-	<separatorclass>: hyphen, space, comma, period, underscore, digit, none
-	capitalization <scheme>: none, first, all, random, one
-	`)
+    <characterclasses>: lowercase, uppercase, digits, symbols, ambiguous, all, none
+`)
 }

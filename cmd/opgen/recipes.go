@@ -13,7 +13,7 @@ type charRecipe struct {
 
 var defaultCharRecipe = charRecipe{
 	length:  20,
-	allow:   []string{"uppercase", "lowercase", "digits", "symbols"},
+	require: []string{"uppercase", "lowercase", "digits"},
 	exclude: []string{"ambiguous"},
 }
 
