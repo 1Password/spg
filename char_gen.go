@@ -126,56 +126,48 @@ func (r CharRecipe) Generate() (*Password, error) {
 }
 
 // buildCharacterList constructs the "alphabet" that is all and only those
-// characters (actually strings of length 1) that are all and only those
-// characters from which the password will be build. It also ensures that
-// there are no duplicates
+// characters (actually strings of length 1) from which the password will be
+// built. It also ensures that there are no duplicates.
 func (r *CharRecipe) buildCharacterList() charList {
-
-	ab := r.AllowChars
-	exclude := r.ExcludeChars
-	require := make(reqSets, 0)
+	allowedChars := r.AllowChars
+	excludedChars := r.ExcludeChars
+	r.requiredSets = make(reqSets, 0)
 	for i, s := range r.RequireSets {
 		if len(s) > 0 {
-			require = append(require,
+			r.requiredSets = append(r.requiredSets,
 				*newReqSet(s, fmt.Sprintf("Custom %d", i+1)))
-			ab += s
 		}
 	}
 	for f, ct := range charTypeByFlag {
 		if r.Allow&f != 0 {
-			ab += ct
+			allowedChars += ct
 		}
-		// Require automatically gets added to alphabet and to the require sets
 		if r.Require&f != 0 {
 			ctName, ok := charTypeNamesByFlag[f]
 			if !ok {
 				ctName = "Dunno"
 			}
-			require = append(require, *newReqSet(ct, ctName))
-			ab += ct
+			r.requiredSets = append(r.requiredSets, *newReqSet(ct, ctName))
 		}
 		if r.Exclude&f != 0 {
-			exclude += ct
+			excludedChars += ct
 		}
 	}
 
-	// Now we need to clean this all up. First let's make them
-	// sets.
+	// Now we need to clean this all up. First let's make them sets.
+	excludedSet := setFromString(excludedChars)
+	r.allowedSet = setFromString(allowedChars).Difference(excludedSet)
 
-	exS := setFromString(exclude)
-	r.allowedSet = setFromString(ab)
-	r.allowedSet = r.allowedSet.Difference(exS)
-
-	// now remove excluded from each reqSet
-	// and remove each ReqSet from allowedSet
-	for _, req := range require {
-		req.s = req.s.Difference(exS)
+	// Now remove excluded chars from each required set
+	// and remove required chars from the allowed set
+	for i := range r.requiredSets {
+		req := &r.requiredSets[i]
+		req.s = req.s.Difference(excludedSet)
 		r.allowedSet = r.allowedSet.Difference(req.s)
 	}
-	r.requiredSets = require
 
-	fullABCSet := r.allowedSet.Union(r.requiredSets.union().s)
-	return strings.Split(stringFromSet(fullABCSet), "")
+	alphabetSet := r.allowedSet.Union(r.requiredSets.union().s)
+	return strings.Split(stringFromSet(alphabetSet), "")
 }
 
 // Entropy returns the entropy of a character password given the generator attributes
