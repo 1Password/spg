@@ -168,7 +168,8 @@ func (r *CharRecipe) buildCharacterList() charList {
 
 	// now remove excluded from each reqSet
 	// and remove each ReqSet from allowedSet
-	for _, req := range require {
+	for i := range require {
+		req := &require[i]
 		req.s = req.s.Difference(exS)
 		r.allowedSet = r.allowedSet.Difference(req.s)
 	}
