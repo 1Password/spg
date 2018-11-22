@@ -202,8 +202,7 @@ func ExampleWLRecipe_once() {
 	}
 
 	// Four word passwords with digit separator and one of the words capitalized
-	length := 4
-	r := NewWLRecipe(length, wl)
+	r := NewWLRecipe(4, wl)
 	r.SeparatorFunc = SFDigits1
 	r.Capitalize = CSOne
 
@@ -212,10 +211,14 @@ func ExampleWLRecipe_once() {
 		log.Fatalf("Oops: %v", err)
 	}
 
-	fmt.Printf("Password: \t%q\n", pwd)
+	// With random ouput, we can't list expected Output
+	// So uncomment the following, but test will fail
+	_ = pwd // Make go happy for when pwd isn't used
+	// fmt.Printf("Password: \t%q\n", pwd)
 
 	e := r.Entropy()
 	fmt.Printf("Entropy: \t%.2f\n", e)
+	//Output: Entropy: 	25.80
 }
 
 // This will run the CharRecipe examples if the -v flat is passed
