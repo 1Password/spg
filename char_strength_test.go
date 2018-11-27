@@ -89,6 +89,47 @@ func TestEntropy(t *testing.T) {
 	}
 }
 
+// Some tests for probability of Required success
+
+func TestSuccessProbability(t *testing.T) {
+	type tvec struct {
+		Length int
+
+		Allow   CTFlag
+		Require CTFlag
+		Exclude CTFlag
+
+		AllowChars   string
+		RequireSets  []string
+		ExcludeChars string
+
+		P float32
+	}
+
+	tvecs := []tvec{
+		{Length: 5, Allow: Letters | Digits, P: 1},
+		{Length: 3, RequireSets: []string{"123", "XYZ", "abc", "+*!"}, P: 0},
+	}
+
+	for i, exp := range tvecs {
+		recipe := &CharRecipe{
+			Length:       exp.Length,
+			Allow:        exp.Allow,
+			Require:      exp.Require,
+			Exclude:      exp.Exclude,
+			AllowChars:   exp.AllowChars,
+			RequireSets:  exp.RequireSets,
+			ExcludeChars: exp.ExcludeChars,
+		}
+		recipe.buildCharacterList()
+		p := recipe.successProbability()
+
+		if cmpFloat32(p, exp.P, 10000) != 0 {
+			t.Errorf("%d: result should be %f, was %f", i, exp.P, p)
+		}
+	}
+}
+
 /**
  ** Copyright 2018 AgileBits, Inc.
  ** Licensed under the Apache License, Version 2.0 (the "License").

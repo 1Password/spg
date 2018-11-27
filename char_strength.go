@@ -130,7 +130,7 @@ func (r CharRecipe) successProbability() float32 {
 	rAllow.Allow = r.Allow | r.Require
 	rAllow.Require = None
 
-	eDiff := rAllow.Entropy() - r.Entropy()
+	eDiff := r.Entropy() - rAllow.Entropy()
 	if eDiff > 0.0 {
 		// This should never happen, but I don't want to
 		// log.Fatal in a library
