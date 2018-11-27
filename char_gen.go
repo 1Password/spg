@@ -198,7 +198,7 @@ type CharRecipe struct {
 
 	// User provided character sets for Allow, Require, and Exclude
 	AllowChars   string   // Specific characters that may appear
-	RequireSets  []string // Partially implemented
+	RequireSets  []string // At least one character from each string must appear
 	ExcludeChars string   // Specific characters that must not appear
 
 	// Following sets are computed

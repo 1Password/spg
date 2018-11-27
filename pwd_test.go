@@ -2,6 +2,7 @@ package spg
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"regexp"
 	"strings"
@@ -188,6 +189,36 @@ func ExampleCharRecipe_lowerdigits() {
 		p, _ := r.Generate() // You would check error in real code
 		fmt.Printf("Password: %q\tEntropy: %.3f\n", p, p.Entropy)
 	}
+}
+
+func ExampleWLRecipe_once() {
+
+	// You would use a much longer wordlist, probably taken from a file
+	w := []string{"once", "upon", "midnight", "dreary", "while", "pondered", "weak", "and", "weary", "over", "many"}
+
+	wl, err := NewWordList(w) // Prepares list for use in recipe creation
+	if err != nil {
+		log.Fatalf("Oops: %v", err)
+	}
+
+	// Four word passwords with digit separator and one of the words capitalized
+	r := NewWLRecipe(4, wl)
+	r.SeparatorFunc = SFDigits1
+	r.Capitalize = CSOne
+
+	pwd, err := r.Generate()
+	if err != nil {
+		log.Fatalf("Oops: %v", err)
+	}
+
+	// With random ouput, we can't list expected Output
+	// So uncomment the following, but test will fail
+	_ = pwd // Make go happy for when pwd isn't used
+	// fmt.Printf("Password: \t%q\n", pwd)
+
+	e := r.Entropy()
+	fmt.Printf("Entropy: \t%.2f\n", e)
+	//Output: Entropy: 	25.80
 }
 
 // This will run the CharRecipe examples if the -v flat is passed
