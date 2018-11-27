@@ -109,6 +109,24 @@ func TestSuccessProbability(t *testing.T) {
 	tvecs := []tvec{
 		{Length: 5, Allow: Letters | Digits, P: 1},
 		{Length: 3, RequireSets: []string{"123", "XYZ", "abc", "+*!"}, P: 0},
+
+		{Require: Letters | Digits, Length: 3, P: 40560.0 / 238328.0},
+		{RequireSets: []string{"ab", "123"}, Length: 2, P: 12.0 / 25.0},
+
+		// Following tests were not calculated independently.
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 8, P: 0.444025},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 9, P: 0.521395},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 10, P: 0.588561},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 11, P: 0.646499},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 12, P: 0.696338},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 13, P: 0.739163},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 14, P: 0.775953},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 15, P: 0.807565},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 16, P: 0.834729},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 17, P: 0.858070},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 18, P: 0.878131},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 19, P: 0.895364},
+		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 20, P: 0.910173},
 	}
 
 	for i, exp := range tvecs {
