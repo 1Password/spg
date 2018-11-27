@@ -64,10 +64,11 @@ A word about Entropy
 Entropy is a highly misleading concept when applied to passwords. In the general case it
 is either an incoherent concept or the wrong concept to use when talking about the strength
 of a password.
-It does, however, make sense when a password is drawn uniformly from a space of possible passwords.
+It does, however, make sense when a password is drawn uniformly from a space of possible passwords. When the distribution is uniform, the (Shannon) entropy is the same as the min-entropy (based on probability of gett the most likely result).
+
 This package does ensure that passwords are generated uniformly given the recipe
 passed to the generator, with the exception of the interaction of capitalizaton for some wordlists.
-In those cases, min-entropy is reported.
+In those cases, min-entropy is reported. That is, where min-entropy is not the same as Shannon Entropy Entropy() returns the min-entropy.
 
 Entropy is a function solely of the recipe.
 

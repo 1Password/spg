@@ -26,6 +26,7 @@ In "correct horse battery" there are five tokens
 		{Value: " ", Type: SeparatorType},
 		{Value: "battery", Type: AtomType},
 	}
+
 */
 type Token struct {
 	value string
@@ -42,7 +43,13 @@ func (t Token) Type() TokenType {
 	return t.tType
 }
 
-// Tokens is the array of tokens that comprise a password
+// Tokens is the array of tokens that comprise a password.
+// Its purpose is to allow some consumer of generated passwords
+// to be able to display a wordlist password with knowledge of where
+// the units and separators are. For example, the separators within
+// a wordlist password might be displayed in a different color.
+//
+// Tokens is also intended to ber a relatively compact entity.
 type Tokens []Token
 
 // IndexKind is the kind of tokenization index.
