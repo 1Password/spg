@@ -110,9 +110,9 @@ func unionAll(elements set.Set) set.Set {
 	return combined
 }
 
-// successProbability returns the chances of meeting all of the Require-ments
+// SuccessProbability returns the chances of meeting all of the Require-ments
 // on a single trial.
-func (r CharRecipe) successProbability() float32 {
+func (r CharRecipe) SuccessProbability() float32 {
 
 	/* The probability of generating a password that meets the Requirements
 	   on a single trial is the ratio of r.n()/rWithAllRequiredChangedToAllowed.n()
@@ -124,13 +124,13 @@ func (r CharRecipe) successProbability() float32 {
 
 	newAllowChars := r.AllowChars + strings.Join(r.RequireSets, "")
 	newRequireSets := []string{}
-	rAllow := r
-	rAllow.AllowChars = newAllowChars
-	rAllow.RequireSets = newRequireSets
-	rAllow.Allow = r.Allow | r.Require
-	rAllow.Require = None
+	rCopy := r
+	rCopy.AllowChars = newAllowChars
+	rCopy.RequireSets = newRequireSets
+	rCopy.Allow = r.Allow | r.Require
+	rCopy.Require = None
 
-	eDiff := r.Entropy() - rAllow.Entropy()
+	eDiff := r.Entropy() - rCopy.Entropy()
 	if eDiff > 0.0 {
 		// This should never happen, but I don't want to
 		// log.Fatal in a library

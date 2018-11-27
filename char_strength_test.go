@@ -140,7 +140,7 @@ func TestSuccessProbability(t *testing.T) {
 			ExcludeChars: exp.ExcludeChars,
 		}
 		recipe.buildCharacterList()
-		p := recipe.successProbability()
+		p := recipe.SuccessProbability()
 
 		if cmpFloat32(p, exp.P, 10000) != 0 {
 			t.Errorf("%d: result should be %f, was %f", i, exp.P, p)
