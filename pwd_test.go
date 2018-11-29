@@ -211,7 +211,7 @@ func ExampleWLRecipe_once() {
 		log.Fatalf("Oops: %v", err)
 	}
 
-	// With random ouput, we can't list expected Output
+	// With random output, we can't list expected Output
 	// So uncomment the following, but test will fail
 	_ = pwd // Make go happy for when pwd isn't used
 	// fmt.Printf("Password: \t%q\n", pwd)
