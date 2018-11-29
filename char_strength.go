@@ -12,17 +12,27 @@ import (
 
 func (r CharRecipe) entropyWithRequired() float32 {
 	intValue := r.n()
-	floatValue := big.NewFloat(0).SetInt(intValue)
 
 	// big.Float doesn't have a Log function, so we need to stuff the
 	// result into a float64.
 	// See https://github.com/golang/go/issues/14102
-	float64Value, _ := floatValue.Float64()
-	if math.IsInf(float64Value, 1) {
-		float64Value = math.MaxFloat64
-	}
 
-	return float32(math.Log2(float64Value))
+	// Fun log math:
+	//   log2(intValue) =
+	//   log2(intValue / 2 ** N * 2 ** N) =
+	//   log2(intValue / 2 ** N) + log2(2 ** N) =
+	//   log2(intValue / 2 ** N) + N
+	//
+	// Pick N so that (intValue / 2 ** N) doesn't overflow a float64
+
+	// Avoid overflow by setting float64Value to intValue divided by the
+	// smallest power of two such that float64Value is less than 1.
+	bitLen := intValue.BitLen()
+	twoPow := big.NewInt(0).SetBit(big.NewInt(0), bitLen, 1)
+	ratValue := big.NewRat(0, 1).SetFrac(intValue, twoPow)
+	float64Value, _ := ratValue.Float64()
+
+	return float32(math.Log2(float64Value) + float64(bitLen))
 }
 
 func (r CharRecipe) n() *big.Int {
