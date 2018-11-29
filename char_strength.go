@@ -14,21 +14,19 @@ func (r CharRecipe) entropyWithRequired() float32 {
 	intValue := r.n()
 	floatValue := big.NewFloat(0).SetInt(intValue)
 
-	// Avoid float64 overflows by spliting up the mantissa and exponent.
+	// big.Float doesn't have a Log function, so we need to use a float64.
+	// See https://github.com/golang/go/issues/14102
+	// Avoid float64 overflows by splitting up the mantissa and exponent.
 	mantissa := big.NewFloat(0)
 	expo := floatValue.MantExp(mantissa)
-
-	// big.Float doesn't have a Log function, so we need to stuff the
-	// result into a float64.
-	// See https://github.com/golang/go/issues/14102
-	float64Value, _ := mantissa.Float64()
+	float64Mantissa, _ := mantissa.Float64()
 
 	// Fun log math:
 	//   log2(intValue) =
 	//   log2(intValue / 2 ** N * 2 ** N) =
 	//   log2(intValue / 2 ** N) + log2(2 ** N) =
 	//   log2(intValue / 2 ** N) + N
-	return float32(math.Log2(float64Value) + float64(expo))
+	return float32(math.Log2(float64Mantissa) + float64(expo))
 }
 
 func (r CharRecipe) n() *big.Int {
