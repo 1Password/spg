@@ -70,7 +70,7 @@ func entropySimple(length int, nelem int) FloatE {
 // It panics if a security-sensitive random number cannot be created.
 // Care is taken to avoid modulo bias.
 //
-// Based on Int32n from the math/rand package..
+// Based on Int31n from the math/rand package..
 func randomUint32n(n uint32) uint32 {
 	if n <= 1 {
 		return 0
