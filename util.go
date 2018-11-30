@@ -41,7 +41,7 @@ func nFromString(ab string, n int) (string, float64) {
 
 // randomInt32 creates a random 32 bit unsigned integer
 func randomInt32() uint32 {
-	b := make([]byte, 8)
+	b := make([]byte, 4)
 	_, err := rand.Read(b)
 	if err != nil {
 		panic("PRNG gen error:" + err.Error())
