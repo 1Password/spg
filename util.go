@@ -1,7 +1,6 @@
 package spg
 
 import (
-	"bytes"
 	rand "crypto/rand"
 	"encoding/binary"
 	"fmt"
@@ -33,29 +32,21 @@ func nFromString(ab string, n int) (string, float64) {
 	sep := ""
 	rAB := strings.Split(ab, "") // an AlphaBet of runes
 	for i := 1; i <= n; i++ {
-		sep += string(rAB[int31n(uint32(len(rAB)))])
+		sep += string(rAB[randomUint32n(uint32(len(rAB)))])
 	}
 	return sep, ent
 
 }
 
-// randomInt32 creates a random 32 bit unsigned integer
-func randomInt32() uint32 {
-	b := make([]byte, 8)
+// randomUint32 creates a random 32 bit unsigned integer
+func randomUint32() uint32 {
+	b := make([]byte, 4)
 	_, err := rand.Read(b)
 	if err != nil {
 		panic("PRNG gen error:" + err.Error())
 	}
 
-	var result int32
-	buf := bytes.NewReader(b)
-	err = binary.Read(buf, binary.LittleEndian, &result)
-
-	if err != nil {
-		panic("PRNG conversion error:" + err.Error())
-	}
-
-	return uint32(result)
+	return binary.BigEndian.Uint32(b)
 }
 
 // entropySimple takes the password length and the number of elements in the alphabet
@@ -75,21 +66,22 @@ func entropySimple(length int, nelem int) FloatE {
 	return FloatE(float64(length) * entPerUnit)
 }
 
-// int31n returns, as an int32, a non-negative random number in [0,n) from a cryptographic appropriate source. It panics if n <= 0 or if
-// a security-sensitive random number cannot be created. Care is taken to avoid modulo bias.
+// randomUint32n returns, as a uint32, a non-negative random number in [0,n) from a cryptographic appropriate source.
+// It panics if a security-sensitive random number cannot be created.
+// Care is taken to avoid modulo bias.
 //
-// Copied from the math/rand package..
-func int31n(n uint32) uint32 {
-	if n <= 0 {
-		panic("invalid argument to int31n")
+// Based on Int31n from the math/rand package..
+func randomUint32n(n uint32) uint32 {
+	if n <= 1 {
+		return 0
 	}
 	if n&(n-1) == 0 { // n is power of two, can mask
-		return randomInt32() & (n - 1)
+		return randomUint32() & (n - 1)
 	}
-	max := uint32((1 << 31) - 1 - (1<<31)%uint32(n))
-	v := randomInt32()
-	for v > max {
-		v = randomInt32()
+	discard := uint32(math.MaxUint32 - math.MaxUint32%n)
+	v := randomUint32()
+	for v >= discard {
+		v = randomUint32()
 	}
 	return v % n
 }

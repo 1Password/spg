@@ -49,7 +49,7 @@ func (t Token) Type() TokenType {
 // the units and separators are. For example, the separators within
 // a wordlist password might be displayed in a different color.
 //
-// Tokens is also intended to ber a relatively compact entity.
+// Tokens is also intended to be a relatively compact entity.
 type Tokens []Token
 
 // IndexKind is the kind of tokenization index.

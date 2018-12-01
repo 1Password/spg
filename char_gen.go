@@ -112,7 +112,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 	for i := 0; i < trials; i++ {
 		tokens := make([]Token, r.Length)
 		for i := 0; i < r.Length; i++ {
-			c := chars[int31n(uint32(len(chars)))]
+			c := chars[randomUint32n(uint32(len(chars)))]
 			tokens[i] = Token{c, AtomType}
 		}
 		p.tokens = tokens
