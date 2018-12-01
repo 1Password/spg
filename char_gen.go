@@ -112,7 +112,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 	for i := 0; i < trials; i++ {
 		tokens := make([]Token, r.Length)
 		for i := 0; i < r.Length; i++ {
-			c := chars[int31n(uint32(len(chars)))]
+			c := chars[randomUint32n(uint32(len(chars)))]
 			tokens[i] = Token{c, AtomType}
 		}
 		p.tokens = tokens
@@ -198,7 +198,7 @@ type CharRecipe struct {
 
 	// User provided character sets for Allow, Require, and Exclude
 	AllowChars   string   // Specific characters that may appear
-	RequireSets  []string // Partially implemented
+	RequireSets  []string // At least one character from each string must appear
 	ExcludeChars string   // Specific characters that must not appear
 
 	// Following sets are computed
