@@ -152,6 +152,11 @@ func TestSuccessProbability(t *testing.T) {
 		if cmpFloat32(p, exp.P, 10000) != 0 {
 			t.Errorf("Result for length %d should be %f, was %f", exp.Length, exp.P, p)
 		}
+
+		// I want to call the generator on some of these in the debugger, so ...
+		pwd, err := recipe.Generate()
+		_ = err
+		_ = pwd
 	}
 }
 

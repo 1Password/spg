@@ -2,7 +2,6 @@ package spg
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"sort"
 	"strings"
@@ -88,6 +87,24 @@ var charTypeNamesByFlag = map[CTFlag]string{
 	All:     "All characters",
 }
 
+// Re-generation trials for meeting requirements
+const (
+	MaxTrials   = 200              // MaxTrials how many time we try to generate before giving up
+	MinFailRate = 1.0 / 1000000000 // Minimum acceptable failure rate after MaxTrials
+)
+
+func (r CharRecipe) acceptableFailRate() (bool, float32) {
+	sp := r.SuccessProbability()
+	if sp <= 0.0 {
+		return false, 1.0
+	}
+	failP := math.Pow(1.0-float64(sp), MaxTrials)
+	if failP > MinFailRate {
+		return false, float32(failP)
+	}
+	return true, float32(failP)
+}
+
 /*** Character type passwords ***/
 
 // Generate a password using the character generator. The attributes contain
@@ -103,20 +120,10 @@ func (r CharRecipe) Generate() (*Password, error) {
 
 	chars := r.buildCharacterList()
 
-	// If it's impossible to meet requirements, there will be 0 possibilities and entropy will be -Inf.
-	// Entropy of 0 means there's 1 possibility.
-	if math.IsInf(float64(p.Entropy), -1) {
-		return nil, fmt.Errorf("password too short to meet all inclusion requirements")
+	if acceptable, failP := r.acceptableFailRate(); !acceptable {
+		return nil, fmt.Errorf("Chance of not generated a valid password (%v) is too high", failP)
 	}
-
-	trials := 200
-	minProb := 1.0 / 1000.0 // This should be a public parameter
-	singleP := r.SuccessProbability()
-	totalP := math.Pow(1.0-float64(singleP), float64(trials))
-	if totalP < (1.0 - minProb) {
-		log.Printf("Chance of not generating valid pwd (%v) is too high", 1-totalP)
-	}
-	for i := 0; i < trials; i++ {
+	for i := 0; i < MaxTrials; i++ {
 		tokens := make([]Token, r.Length)
 		for i := 0; i < r.Length; i++ {
 			c := chars[randomUint32n(uint32(len(chars)))]
@@ -129,7 +136,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 			return p, nil
 		}
 	}
-	return nil, fmt.Errorf("couldn't generate password complying with requirements after %v attempts", trials)
+	return nil, fmt.Errorf("couldn't generate password complying with requirements after %v attempts", MaxTrials)
 }
 
 // buildCharacterList constructs the "alphabet" that is all and only those
