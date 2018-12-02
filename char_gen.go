@@ -88,7 +88,7 @@ var charTypeNamesByFlag = map[CTFlag]string{
 }
 
 // Re-generation trials for meeting requirements
-const (
+var (
 	MaxTrials   = 200              // MaxTrials how many time we try to generate before giving up
 	MinFailRate = 1.0 / 1000000000 // Minimum acceptable failure rate after MaxTrials
 )
@@ -98,7 +98,7 @@ func (r CharRecipe) acceptableFailRate() (bool, float32) {
 	if sp <= 0.0 {
 		return false, 1.0
 	}
-	failP := math.Pow(1.0-float64(sp), MaxTrials)
+	failP := math.Pow(1.0-float64(sp), float64(MaxTrials))
 	if failP > MinFailRate {
 		return false, float32(failP)
 	}
