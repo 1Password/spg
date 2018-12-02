@@ -114,22 +114,29 @@ func TestSuccessProbability(t *testing.T) {
 		{RequireSets: []string{"ab", "123"}, Length: 2, P: 12.0 / 25.0},
 
 		// Following tests were not calculated independently.
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 8, P: 0.444025},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 9, P: 0.521395},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 10, P: 0.588561},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 11, P: 0.646499},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 12, P: 0.696338},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 13, P: 0.739163},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 14, P: 0.775953},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 15, P: 0.807565},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 16, P: 0.834729},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 17, P: 0.858070},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 18, P: 0.878131},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 19, P: 0.895364},
-		{RequireSets: []string{lower, upper, digits, "+-()*&.;$#@"}, Length: 20, P: 0.910173},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 1, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 2, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 3, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 4, P: 0.071610},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 5, P: 0.179024},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 6, P: 0.293271},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 7, P: 0.399864},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 8, P: 0.493387},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 9, P: 0.572959},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 10, P: 0.639650},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 11, P: 0.695186},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 12, P: 0.741371},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 13, P: 0.779832},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 14, P: 0.811963},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 15, P: 0.838902},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 16, P: 0.861589},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 17, P: 0.880777},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 18, P: 0.897070},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 19, P: 0.910953},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 20, P: 0.922832},
 	}
 
-	for i, exp := range tvecs {
+	for _, exp := range tvecs {
 		recipe := &CharRecipe{
 			Length:       exp.Length,
 			Allow:        exp.Allow,
@@ -143,7 +150,7 @@ func TestSuccessProbability(t *testing.T) {
 		p := recipe.SuccessProbability()
 
 		if cmpFloat32(p, exp.P, 10000) != 0 {
-			t.Errorf("%d: result should be %f, was %f", i, exp.P, p)
+			t.Errorf("Result for length %d should be %f, was %f", exp.Length, exp.P, p)
 		}
 	}
 }
