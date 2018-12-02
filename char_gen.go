@@ -2,6 +2,7 @@ package spg
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"sort"
 	"strings"
@@ -109,6 +110,12 @@ func (r CharRecipe) Generate() (*Password, error) {
 	}
 
 	trials := 200
+	minProb := 1.0 / 1000.0 // This should be a public parameter
+	singleP := r.SuccessProbability()
+	totalP := math.Pow(1.0-float64(singleP), float64(trials))
+	if totalP < (1.0 - minProb) {
+		log.Printf("Chance of not generating valid pwd (%v) is too high", 1-totalP)
+	}
 	for i := 0; i < trials; i++ {
 		tokens := make([]Token, r.Length)
 		for i := 0; i < r.Length; i++ {
