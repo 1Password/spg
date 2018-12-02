@@ -91,20 +91,23 @@ func TestEntropy(t *testing.T) {
 
 // Some tests for probability of Required success
 
+type tvec struct {
+	Length int
+
+	Allow   CTFlag
+	Require CTFlag
+	Exclude CTFlag
+
+	AllowChars   string
+	RequireSets  []string
+	ExcludeChars string
+
+	P          float32
+	Acceptable bool
+	FailRate   float32
+}
+
 func TestSuccessProbability(t *testing.T) {
-	type tvec struct {
-		Length int
-
-		Allow   CTFlag
-		Require CTFlag
-		Exclude CTFlag
-
-		AllowChars   string
-		RequireSets  []string
-		ExcludeChars string
-
-		P float32
-	}
 
 	tvecs := []tvec{
 		{Length: 5, Allow: Letters | Digits, P: 1},
@@ -157,6 +160,47 @@ func TestSuccessProbability(t *testing.T) {
 		pwd, err := recipe.Generate()
 		_ = err
 		_ = pwd
+	}
+}
+
+func TestAcceptableFailRate(t *testing.T) {
+	vectors := []tvec{{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 1, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 2, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 3, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 4, P: 0.071610, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 5, P: 0.179024, Acceptable: true},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 6, P: 0.293271, Acceptable: true},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 7, P: 0.399864, Acceptable: true},
+	}
+
+	for i, exp := range vectors {
+		recipe := &CharRecipe{
+			Length:       exp.Length,
+			Allow:        exp.Allow,
+			Require:      exp.Require,
+			Exclude:      exp.Exclude,
+			AllowChars:   exp.AllowChars,
+			RequireSets:  exp.RequireSets,
+			ExcludeChars: exp.ExcludeChars,
+		}
+		recipe.buildCharacterList()
+		acceptable, p := recipe.acceptableFailRate()
+		if acceptable != exp.Acceptable {
+			if acceptable {
+				t.Errorf("%d-th incorrectly found acceptable: fail rate %v", i, p)
+			} else {
+				t.Errorf("%d-th incorrectly found unacceptable: fail rate %v", i, p)
+			}
+		}
+
+		_, err := recipe.Generate()
+		if err == nil && !exp.Acceptable {
+			t.Errorf("%d-th should have reported error for too high failure rate. Computed %v", i, p)
+		}
+		if err != nil && exp.Acceptable {
+			t.Errorf("%d-th shouldn't have reported error for acceptable failure rate. Computed:%v, Error: %q", i, p, err)
+
+		}
 	}
 }
 
