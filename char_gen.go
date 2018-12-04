@@ -222,7 +222,7 @@ type CharRecipe struct {
 
 // NewCharRecipe creates CharRecipe with reasonable defaults and Length length
 // Defaults are
-//    r.Allow = Letters | Digits | Symbols
+//    r.Require = Uppers | Lowers | Digits
 //    r.Exclude = Ambiguous
 // And these may need to be cleared if you want to tinker with them
 func NewCharRecipe(length int) *CharRecipe {
@@ -230,7 +230,7 @@ func NewCharRecipe(length int) *CharRecipe {
 	r := new(CharRecipe)
 	r.Length = length
 
-	r.Allow = Letters | Digits | Symbols
+	r.Require = Uppers | Lowers | Digits
 	r.Exclude = Ambiguous
 
 	return r
