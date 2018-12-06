@@ -67,12 +67,15 @@ func entropySimple(length int, nelem int) FloatE {
 }
 
 // randomUint32n returns, as a uint32, a non-negative random number in [0,n) from a cryptographic appropriate source.
-// It panics if a security-sensitive random number cannot be created.
+// It panics if a security-sensitive random number cannot be created or if n == 0.
 // Care is taken to avoid modulo bias.
 //
 // Based on Int31n from the math/rand package..
 func randomUint32n(n uint32) uint32 {
-	if n <= 1 {
+	if n < 1 {
+		panic("randomUint32n called with 0")
+	}
+	if n == 1 {
 		return 0
 	}
 	if n&(n-1) == 0 { // n is power of two, can mask
