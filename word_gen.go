@@ -152,13 +152,13 @@ func (r WLRecipe) Generate() (*Password, error) {
 		w := int(randomUint32n(uint32(r.Length)))
 		capWords[w] = true
 	case CSRandom:
-		for i := 1; i <= r.Length; i++ {
+		for i := 0; i < r.Length; i++ {
 			if randomUint32n(2) == 1 {
 				capWords[i] = true
 			}
 		}
 	case CSAll:
-		for i := 1; i <= r.Length; i++ {
+		for i := 0; i < r.Length; i++ {
 			capWords[i] = true
 		}
 	}
