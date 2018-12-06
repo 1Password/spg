@@ -29,4 +29,10 @@ var recipes = map[string]spg.Generator{
 	"syllables": &spg.WLRecipe{
 		Length: 5,
 	},
+	// compromise attempts to fix strength, memorability, and type-ability
+	"compromise": &spg.WLRecipe{
+		Length:        4,
+		Capitalize:    spg.CSOne,
+		SeparatorFunc: spg.SFDigits1,
+	},
 }
