@@ -382,7 +382,45 @@ func TestSyllableDigit(t *testing.T) {
 		}
 	}
 }
+func TestSLDigit(t *testing.T) {
+	// wl, err := NewWordList(abSyllables)
+	wl, err := NewWordList(abSyllables)
+	if err != nil {
+		t.Errorf("Couldn't create syllable generator: %v", err)
+	}
+	r := NewWLRecipe(3, wl)
+	r.SeparatorFunc = SFDigits1
+	r.Capitalize = CSOne
 
+	// With a wordlist of 7 members, I get an expected entropy for these
+	// attributes to be 48. int(12*log2(7) + log2(12) + 11*log2(10))
+	expEnt := float32(48.147430)
+
+	sylRE := "\\pL\\p{Ll}{1,3}" // A letter followed by 1-3 lowercase letters
+	sepRE := "\\d"
+	preCount := "{" + strconv.Itoa(r.Length-1) + "}"
+	leadRE := "(?:" + sylRE + sepRE + ")" + preCount
+	reStr := "^" + leadRE + sylRE + "$"
+	re, err := regexp.Compile(reStr)
+	if err != nil {
+		t.Errorf("regexp %q did not compile: %v", re, err)
+	}
+
+	for i := 0; i < 20; i++ {
+		p, err := r.Generate()
+		pw, ent := p.String(), p.Entropy
+		if err != nil {
+			t.Errorf("failed to generate syllable pw: %v", err)
+		}
+		// fmt.Println(pw)
+		if !re.MatchString(pw) {
+			t.Errorf("pwd %q didn't match regexp %q", pw, re)
+		}
+		if cmpFloat32(ent, expEnt, entCompTolerance) != 0 {
+			t.Errorf("expected entropy of %.6f. Got %.6f", expEnt, ent)
+		}
+	}
+}
 func TestNonASCIISeparators(t *testing.T) {
 	sl := []string{"uno", "dos", "tres"}
 	length := 5
