@@ -89,6 +89,39 @@ func TestEntropy(t *testing.T) {
 	}
 }
 
+func TestRandomUint32n_Panic(t *testing.T) {
+	// Testing recover state to check for panic.
+	// Lifted from https://stackoverflow.com/a/31596110/1304076
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("should have panicked")
+		}
+	}()
+
+	randomUint32n(0)
+}
+
+func TestRandomUint32n_1(t *testing.T) {
+	if r := randomUint32n(1); r != 0 {
+		t.Errorf("returned %v instead of 0", r)
+	}
+}
+
+func TestGenerator_Impossible(t *testing.T) {
+	recipe := &CharRecipe{
+		Length:       5,
+		AllowChars:   "abc",
+		ExcludeChars: "abc",
+	}
+	pwd, err := recipe.Generate()
+	if err == nil {
+		t.Error("Should have erred on zero length alphabet")
+	}
+	if pwd != nil {
+		t.Errorf("Should not have returned a password (%q) on zero length alphabet", pwd.String())
+	}
+}
+
 /**
  ** Copyright 2018 AgileBits, Inc.
  ** Licensed under the Apache License, Version 2.0 (the "License").
