@@ -101,6 +101,9 @@ func (r CharRecipe) Generate() (*Password, error) {
 	p.Entropy = r.Entropy()
 
 	chars := r.buildCharacterList()
+	if len(chars) == 0 {
+		return nil, fmt.Errorf("no characters to build pwd from")
+	}
 
 	// If it's impossible to meet requirements, there will be 0 possibilities and entropy will be -Inf.
 	// Entropy of 0 means there's 1 possibility.
