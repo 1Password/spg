@@ -75,9 +75,6 @@ func randomUint32n(n uint32) uint32 {
 	if n < 1 {
 		panic("randomUint32n called with 0")
 	}
-	if n == 1 {
-		return 0
-	}
 	if n&(n-1) == 0 { // n is power of two, can mask
 		return randomUint32() & (n - 1)
 	}
