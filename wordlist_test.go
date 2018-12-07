@@ -277,31 +277,29 @@ func TestWLCapAll(t *testing.T) {
 		t.Errorf("regexp %q did not compile: %v", lcWRE, err)
 	}
 
-	for i := 0; i < 10; i++ {
-		p, err := r.Generate()
-		ent := p.Entropy
-		expectedEnt := float32(17.297158093186486) // 5 * log2(11)
-		if err != nil {
-			t.Errorf("failed to generate %d word password: %v", length, err)
-		}
-		if cmpFloat32(ent, expectedEnt, entCompTolerance) != 0 {
-			t.Errorf("expected entropy (%.6f) != returned entropy (%.6f)", expectedEnt, ent)
-		}
+	p, err := r.Generate()
+	ent := p.Entropy
+	expectedEnt := float32(17.297158093186486) // 5 * log2(11)
+	if err != nil {
+		t.Errorf("failed to generate %d word password: %v", length, err)
+	}
+	if cmpFloat32(ent, expectedEnt, entCompTolerance) != 0 {
+		t.Errorf("expected entropy (%.6f) != returned entropy (%.6f)", expectedEnt, ent)
+	}
 
-		pw := p.String()
+	pw := p.String()
 
-		if !re.MatchString(pw) {
-			t.Errorf("%q doesn't match %s", pw, re)
-		}
+	if !re.MatchString(pw) {
+		t.Errorf("%q doesn't match %s", pw, re)
+	}
 
-		lCount := len(l.FindAllString(pw, -1)) // This appears to be really slow
-		if lCount != r.Length-1 {
-			t.Errorf("%d lowercase words in %q. Expected %d", lCount, pw, 0)
-		}
-		uCount := len(u.FindAllString(pw, -1))
-		if uCount != 1 {
-			t.Errorf("%d uppercase words in %q. Expected %d", uCount, pw, r.Length)
-		}
+	lCount := len(l.FindAllString(pw, -1)) // This appears to be really slow
+	if lCount != r.Length-1 {
+		t.Errorf("%d lowercase words in %q. Expected %d", lCount, pw, 0)
+	}
+	uCount := len(u.FindAllString(pw, -1))
+	if uCount != 1 {
+		t.Errorf("%d uppercase words in %q. Expected %d", uCount, pw, r.Length)
 	}
 
 }
