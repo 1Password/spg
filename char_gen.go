@@ -99,10 +99,7 @@ func (r CharRecipe) acceptableFailRate() (bool, float32) {
 		return false, 1.0
 	}
 	failP := math.Pow(1.0-float64(sp), float64(MaxTrials))
-	if failP > MaxFailRate {
-		return false, float32(failP)
-	}
-	return true, float32(failP)
+	return failP <= MaxFailRate, float32(failP)
 }
 
 /*** Character type passwords ***/
