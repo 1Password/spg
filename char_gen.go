@@ -87,6 +87,21 @@ var charTypeNamesByFlag = map[CTFlag]string{
 	All:     "All characters",
 }
 
+// Re-generation trials for meeting requirements
+var (
+	MaxTrials   = 200              // How many times we will try to generate before giving up
+	MaxFailRate = 1.0 / 1000000000 // Maximum acceptable failure rate after MaxTrials
+)
+
+func (r CharRecipe) hasAcceptableFailRate() (bool, float32) {
+	sp := r.SuccessProbability()
+	if sp <= 0.0 {
+		return false, 1.0
+	}
+	failP := math.Pow(1.0-float64(sp), float64(MaxTrials))
+	return failP <= MaxFailRate, float32(failP)
+}
+
 /*** Character type passwords ***/
 
 // Generate a password using the character generator. The attributes contain
@@ -105,14 +120,10 @@ func (r CharRecipe) Generate() (*Password, error) {
 		return nil, fmt.Errorf("no characters to build pwd from")
 	}
 
-	// If it's impossible to meet requirements, there will be 0 possibilities and entropy will be -Inf.
-	// Entropy of 0 means there's 1 possibility.
-	if math.IsInf(float64(p.Entropy), -1) {
-		return nil, fmt.Errorf("password too short to meet all inclusion requirements")
+	if acceptable, failP := r.hasAcceptableFailRate(); !acceptable {
+		return nil, fmt.Errorf("Chance of not generated a valid password (%v) is too high", failP)
 	}
-
-	trials := 200
-	for i := 0; i < trials; i++ {
+	for i := 0; i < MaxTrials; i++ {
 		tokens := make([]Token, r.Length)
 		for i := 0; i < r.Length; i++ {
 			c := chars[randomUint32n(uint32(len(chars)))]
@@ -125,7 +136,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 			return p, nil
 		}
 	}
-	return nil, fmt.Errorf("couldn't generate password complying with requirements after %v attempts", trials)
+	return nil, fmt.Errorf("couldn't generate password complying with requirements after %v attempts", MaxTrials)
 }
 
 // buildCharacterList constructs the "alphabet" that is all and only those
