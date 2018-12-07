@@ -294,11 +294,11 @@ func TestWLCapAll(t *testing.T) {
 	}
 
 	lCount := len(l.FindAllString(pw, -1)) // This appears to be really slow
-	if lCount != r.Length-1 {
+	if lCount != 0 {
 		t.Errorf("%d lowercase words in %q. Expected %d", lCount, pw, 0)
 	}
 	uCount := len(u.FindAllString(pw, -1))
-	if uCount != 1 {
+	if uCount != r.Length {
 		t.Errorf("%d uppercase words in %q. Expected %d", uCount, pw, r.Length)
 	}
 
