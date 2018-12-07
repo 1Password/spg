@@ -156,10 +156,10 @@ func TestSuccessProbability(t *testing.T) {
 			t.Errorf("Result for length %d should be %f, was %f", exp.Length, exp.P, p)
 		}
 
-		// I want to call the generator on some of these in the debugger, so ...
-		pwd, err := recipe.Generate()
-		_ = err
-		_ = pwd
+		// Uncomment the following lines to debug the Generator...
+		// pwd, err := recipe.Generate()
+		// _ = err
+		// _ = pwd
 	}
 }
 
