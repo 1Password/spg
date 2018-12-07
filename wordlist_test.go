@@ -183,7 +183,6 @@ func TestWLFirstCap(t *testing.T) {
 			t.Errorf("%q doesn't match %s", p, re)
 		}
 	}
-
 }
 
 func TestWLOneCap(t *testing.T) {
@@ -246,7 +245,66 @@ func TestWLOneCap(t *testing.T) {
 	}
 
 }
+func TestWLCapAll(t *testing.T) {
+	threeG, err := NewWordList([]string{"once", "upon", "midnight", "dreary", "while", "pondered", "weak", "and", "weary", "over", "many"})
+	if err != nil {
+		t.Errorf("failed to create WL generator: %v", err)
+	}
+	// Test with random capitalization
+	length := 5
+	r := NewWLRecipe(length, threeG)
+	r.SeparatorChar = " "
+	r.Capitalize = CSAll
 
+	tcWRE := "\\p{Lu}\\pL+"
+	lcWRE := "\\p{Ll}\\pL+"
+	wRE := "(?:" + tcWRE + ")"
+	sepRE := "\\Q" + r.SeparatorChar + "\\E"
+	preCount := "{" + strconv.Itoa(r.Length-1) + "}"
+	leadRE := wRE + sepRE + "(?:" + wRE + sepRE + ")" + preCount
+	res := "^" + leadRE + wRE + "$"
+	re, err := regexp.Compile(res)
+
+	if err != nil {
+		t.Errorf("regexp %q did not compile: %v", res, err)
+	}
+	u, err := regexp.Compile("\\b\\p{Lu}")
+	if err != nil {
+		t.Errorf("regexp %q did not compile: %v", tcWRE, err)
+	}
+	l, err := regexp.Compile("\\b\\p{Ll}")
+	if err != nil {
+		t.Errorf("regexp %q did not compile: %v", lcWRE, err)
+	}
+
+	for i := 0; i < 10; i++ {
+		p, err := r.Generate()
+		ent := p.Entropy
+		expectedEnt := float32(17.297158093186486) // 5 * log2(11)
+		if err != nil {
+			t.Errorf("failed to generate %d word password: %v", length, err)
+		}
+		if cmpFloat32(ent, expectedEnt, entCompTolerance) != 0 {
+			t.Errorf("expected entropy (%.6f) != returned entropy (%.6f)", expectedEnt, ent)
+		}
+
+		pw := p.String()
+
+		if !re.MatchString(pw) {
+			t.Errorf("%q doesn't match %s", pw, re)
+		}
+
+		lCount := len(l.FindAllString(pw, -1)) // This appears to be really slow
+		if lCount != r.Length-1 {
+			t.Errorf("%d lowercase words in %q. Expected %d", lCount, pw, 0)
+		}
+		uCount := len(u.FindAllString(pw, -1))
+		if uCount != 1 {
+			t.Errorf("%d uppercase words in %q. Expected %d", uCount, pw, r.Length)
+		}
+	}
+
+}
 func TestWLRandCapitalDistribution(t *testing.T) {
 
 	if !doFallibleTests {
