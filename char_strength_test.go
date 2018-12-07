@@ -184,7 +184,7 @@ func TestAcceptableFailRate(t *testing.T) {
 			ExcludeChars: exp.ExcludeChars,
 		}
 		recipe.buildCharacterList()
-		acceptable, p := recipe.acceptableFailRate()
+		acceptable, p := recipe.hasAcceptableFailRate()
 		if acceptable != exp.Acceptable {
 			if acceptable {
 				t.Errorf("%d-th incorrectly found acceptable: fail rate %v", i, p)

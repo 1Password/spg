@@ -93,7 +93,7 @@ var (
 	MaxFailRate = 1.0 / 1000000000 // Maximum acceptable failure rate after MaxTrials
 )
 
-func (r CharRecipe) acceptableFailRate() (bool, float32) {
+func (r CharRecipe) hasAcceptableFailRate() (bool, float32) {
 	sp := r.SuccessProbability()
 	if sp <= 0.0 {
 		return false, 1.0
@@ -117,7 +117,7 @@ func (r CharRecipe) Generate() (*Password, error) {
 
 	chars := r.buildCharacterList()
 
-	if acceptable, failP := r.acceptableFailRate(); !acceptable {
+	if acceptable, failP := r.hasAcceptableFailRate(); !acceptable {
 		return nil, fmt.Errorf("Chance of not generated a valid password (%v) is too high", failP)
 	}
 	for i := 0; i < MaxTrials; i++ {
