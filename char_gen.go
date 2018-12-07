@@ -116,6 +116,9 @@ func (r CharRecipe) Generate() (*Password, error) {
 	p.Entropy = r.Entropy()
 
 	chars := r.buildCharacterList()
+	if len(chars) == 0 {
+		return nil, fmt.Errorf("no characters to build pwd from")
+	}
 
 	if acceptable, failP := r.hasAcceptableFailRate(); !acceptable {
 		return nil, fmt.Errorf("Chance of not generated a valid password (%v) is too high", failP)
