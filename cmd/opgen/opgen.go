@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"go.1password.io/spg"
+	"github.com/1password/spg"
 )
 
 const (
@@ -52,8 +52,8 @@ var capitalizeMap = map[string]spg.CapScheme{
 }
 
 // Subcommands
-var recipeCommand = flag.NewFlagSet("recipe", flag.ExitOnError)
-var wordlistCommand = flag.NewFlagSet("wordlist", flag.ExitOnError)
+// var recipeCommand = flag.NewFlagSet("recipe", flag.ExitOnError)
+var wordlistCommand = flag.NewFlagSet("words", flag.ExitOnError)
 var charactersCommand = flag.NewFlagSet("characters", flag.ExitOnError)
 
 // Character flags
@@ -80,18 +80,16 @@ func main() {
 
 	var generator spg.Generator
 	switch os.Args[1] {
-	case "recipe":
-		recipeCommand.Parse(os.Args[2:])
+	// case "recipe":
+	// 	recipeCommand.Parse(os.Args[2:])
+	// recipe := parseRecipe(*flagRecipe)
 
-		// recipe := parseRecipe(*flagRecipe)
-
-		// pwd, _ := recipe.Generate()
-		// fmt.Println(pwd.String())
-
+	// pwd, _ := recipe.Generate()
+	// fmt.Println(pwd.String())
 	case "characters":
 		charactersCommand.Parse(os.Args[2:])
 		generator = charGenerator()
-	case "wordlist":
+	case "words":
 		wordlistCommand.Parse(os.Args[2:])
 		generator = wlGenerator()
 	default:
@@ -110,85 +108,7 @@ func main() {
 
 		fmt.Println(pwd.String())
 	}
-	// recipeType := rtChar
-	// switch *flagRecipeType {
-	// case "wl":
-	// 	recipeType = rtWordlist
-	// default:
-	// 	recipeType = rtChar
-	// }
-
-	// f := doWordlistPassword
-	// switch recipeType {
-	// case rtWordlist:
-	// 	f = doWordlistPassword
-
-	// case rtChar:
-	// 	f = doCharacterPassword
-	// default:
-	// 	log.Fatalf("Unknown recipe type: %v\n", recipeType)
-	// }
-	// for i := 0; i < *flagNumber; i++ {
-	// 	f()
-	// }
 }
-
-// really should use subcommands
-// func doCharacterPassword() {
-// 	r := spg.CharRecipe{
-// 		Length: *flagLength,
-// 		Allow:  spg.Digits | spg.Letters | spg.Symbols,
-// 	}
-
-// 	pwd, err := r.Generate()
-// 	if err != nil {
-// 		log.Fatalf("Couldn't generate password: %v\n", err)
-// 	}
-// 	if *flagEntropy {
-// 		fmt.Printf("%.2f:\t%v\n", pwd.Entropy, pwd)
-// 	} else {
-// 		fmt.Println(pwd)
-// 	}
-// }
-
-// func doWordlistPassword() {
-// 	if len(*flagWLFile) != 0 {
-// 		log.Fatal("File reading not yet implemented")
-// 	}
-
-// 	var words []string
-// 	switch *flagList {
-// 	case "word":
-// 		words = spg.AgileWords
-// 	case "syl":
-// 		words = spg.AgileSyllables
-// 	default:
-// 		log.Fatalf("list must be either %q or %q\n", "word", "syl")
-// 	}
-
-// 	wl, err := spg.NewWordList(words)
-// 	if err != nil {
-// 		log.Fatalf("Failed initiate wordlist: %v\n", err)
-// 	}
-
-// 	// Will need more command line options for settings, but lets just
-// 	// hardcode stuff for now
-
-// 	r := spg.NewWLRecipe(*flagLength, wl)
-// 	r.SeparatorFunc = spg.SFDigits1
-// 	r.Capitalize = spg.CSOne
-
-// 	pwd, err := r.Generate()
-// 	if err != nil {
-// 		log.Fatalf("Couldn't generate password: %v\n", err)
-// 	}
-
-// 	if *flagEntropy {
-// 		fmt.Printf("%.2f:\t%v\n", pwd.Entropy, pwd)
-// 	} else {
-// 		fmt.Println(pwd)
-// 	}
-// }
 
 func createSeparatorFunc(value string) spg.SFFunction {
 	return func() (string, spg.FloatE) {
@@ -289,14 +209,15 @@ func loadWordListFile(path string) *spg.WordList {
 }
 
 func printUsage() {
+
+	// opgen recipe [<recipe> | --file=<recipefile>] [--entropy]
+
+	// --file      use a recipe file at the specified path
+	// --entropy   show the entropy of the password recipe
+
+	// <recipe>: memorable, syllables, pin
+
 	fmt.Println(`
-opgen recipe [<recipe> | --file=<recipefile>] [--entropy]
-
-	--file      use a recipe file at the specified path
-	--entropy   show the entropy of the password recipe
-
-	<recipe>: memorable, syllables, pin
-
 opgen characters [--length=<n>] [--allow=<characterclasses>]
 				[--exclude=<characterclasses>] [--require=<characterclasses>]
 				[--entropy]
@@ -311,7 +232,7 @@ opgen characters [--length=<n>] [--allow=<characterclasses>]
 
 	<characterclasses>: uppercase, lowercase, digits, symbols, ambiguous
 
-opgen wordlist [--list=<wordlist> | --file=<wordlistfile>] [--size=<n>]
+opgen words [--list=<wordlist> | --file=<wordlistfile>] [--size=<n>]
 				[--separator=<separatorclass>] [--capitalize=<scheme>]
 				[--entropy]
 
