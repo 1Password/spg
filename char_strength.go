@@ -1,8 +1,10 @@
 package spg
 
 import (
+	"log"
 	"math"
 	"math/big"
+	"strings"
 
 	set "github.com/deckarep/golang-set"
 )
@@ -110,6 +112,43 @@ func unionAll(elements set.Set) set.Set {
 		}
 	}
 	return combined
+}
+
+// SuccessProbability returns the chances of meeting all of the Require-ments
+// on a single trial.
+func (r CharRecipe) SuccessProbability() float32 {
+
+	/* The probability of generating a password that meets the Requirements
+	   on a single trial is the ratio of r.n()/rWithAllRequiredChangedToAllowed.n()
+
+	   But to avoid having to read the Go docs about big Quotients, replace that
+	   division with a substraction of their logarithms. Conveniently, we have
+	   those as the Entropy. Then we just raise 2 to that difference.
+	*/
+
+	newAllowChars := r.AllowChars + strings.Join(r.RequireSets, "")
+	newRequireSets := []string{}
+	rCopy := r
+	rCopy.AllowChars = newAllowChars
+	rCopy.RequireSets = newRequireSets
+	rCopy.Allow = r.Allow | r.Require
+	rCopy.Require = None
+
+	eDiff := r.Entropy() - rCopy.Entropy()
+	if eDiff > 0.0 {
+		// This should never happen, but I don't want to
+		// log.Fatal in a library
+		log.Println("successProbability: eDiff is positive. Setting to 0")
+		eDiff = 0.0
+	}
+
+	p := float32(math.Exp2(float64(eDiff)))
+	if p > 1.0 {
+		// Can't happen, but still
+		log.Println("successProbability: p greater than 1. Setting to 1")
+		p = 1.0
+	}
+	return p
 }
 
 /**

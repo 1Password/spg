@@ -89,6 +89,154 @@ func TestEntropy(t *testing.T) {
 	}
 }
 
+func TestRandomUint32n_Panic(t *testing.T) {
+	// Testing recover state to check for panic.
+	// Lifted from https://stackoverflow.com/a/31596110/1304076
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("should have panicked")
+		}
+	}()
+
+	randomUint32n(0)
+}
+
+func TestRandomUint32n_1(t *testing.T) {
+	if r := randomUint32n(1); r != 0 {
+		t.Errorf("returned %v instead of 0", r)
+	}
+}
+
+func TestGenerator_Impossible(t *testing.T) {
+	recipe := &CharRecipe{
+		Length:       5,
+		AllowChars:   "abc",
+		ExcludeChars: "abc",
+	}
+	pwd, err := recipe.Generate()
+	if err == nil {
+		t.Error("Should have erred on zero length alphabet")
+	}
+	if pwd != nil {
+		t.Errorf("Should not have returned a password (%q) on zero length alphabet", pwd.String())
+	}
+}
+
+// Some tests for probability of Required success
+
+type tvec struct {
+	Length int
+
+	Allow   CTFlag
+	Require CTFlag
+	Exclude CTFlag
+
+	AllowChars   string
+	RequireSets  []string
+	ExcludeChars string
+
+	P          float32
+	Acceptable bool
+	FailRate   float32
+}
+
+func TestSuccessProbability(t *testing.T) {
+
+	tvecs := []tvec{
+		{Length: 5, Allow: Letters | Digits, P: 1},
+		{Length: 3, RequireSets: []string{"123", "XYZ", "abc", "+*!"}, P: 0},
+
+		{Require: Letters | Digits, Length: 3, P: 40560.0 / 238328.0},
+		{RequireSets: []string{"ab", "123"}, Length: 2, P: 12.0 / 25.0},
+
+		// Following tests were not calculated independently.
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 1, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 2, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 3, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 4, P: 0.071610},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 5, P: 0.179024},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 6, P: 0.293271},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 7, P: 0.399864},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 8, P: 0.493387},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 9, P: 0.572959},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 10, P: 0.639650},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 11, P: 0.695186},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 12, P: 0.741371},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 13, P: 0.779832},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 14, P: 0.811963},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 15, P: 0.838902},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 16, P: 0.861589},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 17, P: 0.880777},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 18, P: 0.897070},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 19, P: 0.910953},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 20, P: 0.922832},
+	}
+
+	for _, exp := range tvecs {
+		recipe := &CharRecipe{
+			Length:       exp.Length,
+			Allow:        exp.Allow,
+			Require:      exp.Require,
+			Exclude:      exp.Exclude,
+			AllowChars:   exp.AllowChars,
+			RequireSets:  exp.RequireSets,
+			ExcludeChars: exp.ExcludeChars,
+		}
+		recipe.buildCharacterList()
+		p := recipe.SuccessProbability()
+
+		if cmpFloat32(p, exp.P, 10000) != 0 {
+			t.Errorf("Result for length %d should be %f, was %f", exp.Length, exp.P, p)
+		}
+
+		// Uncomment the following lines to debug the Generator...
+		// pwd, err := recipe.Generate()
+		// _ = err
+		// _ = pwd
+	}
+}
+
+func TestAcceptableFailRate(t *testing.T) {
+	vectors := []tvec{{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 1, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 2, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 3, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 4, P: 0.071610, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 5, P: 0.179024, Acceptable: true},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 6, P: 0.293271, Acceptable: true},
+		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 7, P: 0.399864, Acceptable: true},
+	}
+
+	for i, exp := range vectors {
+		recipe := &CharRecipe{
+			Length:       exp.Length,
+			Allow:        exp.Allow,
+			Require:      exp.Require,
+			Exclude:      exp.Exclude,
+			AllowChars:   exp.AllowChars,
+			RequireSets:  exp.RequireSets,
+			ExcludeChars: exp.ExcludeChars,
+		}
+		recipe.buildCharacterList()
+		acceptable, p := recipe.hasAcceptableFailRate()
+		if acceptable != exp.Acceptable {
+			if acceptable {
+				t.Errorf("%d-th incorrectly found acceptable: fail rate %v", i, p)
+			} else {
+				t.Errorf("%d-th incorrectly found unacceptable: fail rate %v", i, p)
+			}
+		}
+
+		_, err := recipe.Generate()
+		if err == nil && !exp.Acceptable {
+			t.Errorf("%d-th should have reported error for too high failure rate. Computed %v", i, p)
+		}
+		if err != nil && exp.Acceptable {
+			t.Errorf("%d-th shouldn't have reported error for acceptable failure rate. Computed:%v, Error: %q", i, p, err)
+
+		}
+	}
+}
+
 /**
  ** Copyright 2018 AgileBits, Inc.
  ** Licensed under the Apache License, Version 2.0 (the "License").
