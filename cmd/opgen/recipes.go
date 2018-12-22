@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/1password/spg"
+	"go.1password.io/spg"
 )
 
 type charRecipe struct {

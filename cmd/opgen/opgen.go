@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/1password/spg"
+	"go.1password.io/spg"
 )
 
 const (
