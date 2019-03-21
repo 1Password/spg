@@ -15,7 +15,7 @@ const ( // character types
 	ctLower     = "abcdefghijklmnopqrstuvwxyz"
 	ctDigits    = "0123456789"
 	ctAmbiguous = "0O1Il5S"
-	ctSymbols   = "!#%)*+,-.:=>?@]^_}~"
+	ctSymbols   = "!@.-"
 )
 
 /* We have three different internal representations of collections of characters:
