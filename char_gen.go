@@ -15,7 +15,7 @@ const ( // character types
 	ctLower     = "abcdefghijklmnopqrstuvwxyz"
 	ctDigits    = "0123456789"
 	ctAmbiguous = "0O1Il5S"
-	ctSymbols   = "!@.-_"
+	ctSymbols   = "!@.-_*" // See https://github.com/1Password/spg/pull/22 for rationale in choice of symbols
 )
 
 /* We have three different internal representations of collections of characters:
