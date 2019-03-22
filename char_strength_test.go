@@ -23,6 +23,7 @@ type expectation struct {
 const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const lower = "abcdefghijklmnopqrstuvwxyz"
 const digits = "0123456789"
+const symbols = "!#%)*+,-.:=>?@]^_}~"
 
 var expectations = []expectation{
 	{RequireSets: []string{""}, Length: 1, N: 0},
@@ -150,26 +151,26 @@ func TestSuccessProbability(t *testing.T) {
 		{RequireSets: []string{"ab", "123"}, Length: 2, P: 12.0 / 25.0},
 
 		// Following tests were not calculated independently.
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 1, P: 0.0},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 2, P: 0.0},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 3, P: 0.0},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 4, P: 0.071610},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 5, P: 0.179024},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 6, P: 0.293271},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 7, P: 0.399864},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 8, P: 0.493387},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 9, P: 0.572959},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 10, P: 0.639650},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 11, P: 0.695186},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 12, P: 0.741371},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 13, P: 0.779832},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 14, P: 0.811963},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 15, P: 0.838902},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 16, P: 0.861589},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 17, P: 0.880777},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 18, P: 0.897070},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 19, P: 0.910953},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 20, P: 0.922832},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 1, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 2, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 3, P: 0.0},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 4, P: 0.071610},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 5, P: 0.179024},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 6, P: 0.293271},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 7, P: 0.399864},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 8, P: 0.493387},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 9, P: 0.572959},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 10, P: 0.639650},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 11, P: 0.695186},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 12, P: 0.741371},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 13, P: 0.779832},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 14, P: 0.811963},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 15, P: 0.838902},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 16, P: 0.861589},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 17, P: 0.880777},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 18, P: 0.897070},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 19, P: 0.910953},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 20, P: 0.922832},
 	}
 
 	for _, exp := range tvecs {
@@ -197,13 +198,13 @@ func TestSuccessProbability(t *testing.T) {
 }
 
 func TestAcceptableFailRate(t *testing.T) {
-	vectors := []tvec{{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 1, P: 0.0, Acceptable: false},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 2, P: 0.0, Acceptable: false},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 3, P: 0.0, Acceptable: false},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 4, P: 0.071610, Acceptable: false},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 5, P: 0.179024, Acceptable: true},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 6, P: 0.293271, Acceptable: true},
-		{RequireSets: []string{lower, upper, digits, ctSymbols}, Length: 7, P: 0.399864, Acceptable: true},
+	vectors := []tvec{{RequireSets: []string{lower, upper, digits, symbols}, Length: 1, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 2, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 3, P: 0.0, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 4, P: 0.071610, Acceptable: false},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 5, P: 0.179024, Acceptable: true},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 6, P: 0.293271, Acceptable: true},
+		{RequireSets: []string{lower, upper, digits, symbols}, Length: 7, P: 0.399864, Acceptable: true},
 	}
 
 	for i, exp := range vectors {
