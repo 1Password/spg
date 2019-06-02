@@ -164,7 +164,11 @@ func parseWordList(value string) *spg.WordList {
 		os.Exit(ExitUsage)
 	}
 
-	wordList, _ := spg.NewWordList(words)
+	wordList, err := spg.NewWordList(words)
+	if err != nil {
+		log.Printf("Error setting up wordlist: %v", err)
+		os.Exit(ExitCatchall)
+	}
 	return wordList
 }
 
