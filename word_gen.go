@@ -238,34 +238,59 @@ func (wl *WordList) capitalizeRatio() float64 {
 
 ***/
 
-// SFFunction is a type for a function that returns a string
+// A SeparatorRecipe doesn't necessarily have a length, but it may have
+// a tokenizer instructions for when separator isn't just a single character
+// between words
+type SeparatorRecipe struct {
+	CharRecipe
+	t *sfTokenizer
+}
+
+// sfTokenizer will be instructions for how to tokenize the generated separator
+// string so that its parts can be selected as needed
+type sfTokenizer struct{}
+
+func (sr SeparatorRecipe) charRecipe(length int) CharRecipe {
+	cr := CharRecipe(sr)
+	cr.Length = length
+	return cr
+}
+
+// SFFunctionFull is a type for a function that returns a password
+// which will be used to supply the parts for separating components
 // (to be used within a password) and the entropy it contributes
-type SFFunction func() (string, FloatE)
+type SFFunctionFull func(SeparatorRecipe, int) (Password, error)
+
+// SFFunction is a curried SFFunctionFull, but has already consumed
+// the SeparatorRecipe
+type SFFunction func(int) Password
 
 // NewSFFunction makes a Separator Function from a CharRecipe
-func NewSFFunction(r CharRecipe) SFFunction {
-
-	// I need to learn how to proper create factories.
+func NewSFFunction(r SeparatorRecipe) SFFunction {
 	var sf SFFunction
-	sf = func() (string, FloatE) { return sfWrap(r) }
+	sf = func(int) (Password, error) { return sfWrap(r, length) }
 	return sf
 }
 
-// Pre-baked Separator functions
-
-func sfWrap(r CharRecipe) (string, FloatE) {
-	p, _ := r.Generate() // Not sure how to deal with errors here.
-	return p.String(), FloatE(p.Entropy)
+func sfWrap(sr SeparatorRecipe, length int) (Password, error) {
+	r := sr.charRecipe(length)
+	return r.Generate()
 }
 
-// SFNone empty separator
-// func SFNone() (string, FloatE) { return "", 0.0 }
+// Pre-baked Separator Recipes
+var (
+	SRDigits1            = SeparatorRecipe{CharRecipe: CharRecipe{Allow: Digits}}
+	SRDigits2            = SeparatorRecipe{CharRecipe: CharRecipe{Allow: Digits}}                     // Double digit separator
+	SRDigitsNoAmbiguous1 = SeparatorRecipe{CharRecipe: CharRecipe{Allow: Digits, Exclude: Ambiguous}} // Single digit, no ambiguous
+	SRSymbols            = SeparatorRecipe{CharRecipe: CharRecipe{Allow: Symbols}}                    // Symbols
+	SRDigitsSymbols      = SeparatorRecipe{CharRecipe: CharRecipe{Allow: Symbols | Digits}}           // Symbols and digits
+)
 
 // Pre-baked Separator functions
 var (
-	SFNone               SFFunction = func() (string, FloatE) { return "", FloatE(0.0) }                      // Empty separator
-	SFDigits1                       = NewSFFunction(CharRecipe{Length: 1, Allow: Digits})                     // Single digit separator
-	SFDigits2                       = NewSFFunction(CharRecipe{Length: 2, Allow: Digits})                     // Double digit separator
+	SFNone               SFFunction = func(length int) (string, FloatE) { return "", FloatE(0.0) }            // Empty separator
+	SFDigits1                       = NewSFFunction(SeparatorRecipe{CharRecipe: CharRecipe{Allow: Digits}})   // Single digit separator
+	SFDigits2                       = NewSFFunction(SeparatorRecipe{CharRecipe: CharRecipe{Allow: Digits}})   // Double digit separator
 	SFDigitsNoAmbiguous1            = NewSFFunction(CharRecipe{Length: 1, Allow: Digits, Exclude: Ambiguous}) // Single digit, no ambiguous
 	SFDigitsNoAmbiguous2            = NewSFFunction(CharRecipe{Length: 2, Allow: Digits, Exclude: Ambiguous}) // Double digit, no ambiguous
 	SFSymbols                       = NewSFFunction(CharRecipe{Length: 1, Allow: Symbols})                    // Symbols
