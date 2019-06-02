@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -502,6 +503,32 @@ func TestNonASCIISeparators(t *testing.T) {
 			t.Errorf("Expected entropy of %q is %.6f. Got %.6f", pw, expectedEnt, ent)
 		}
 		// fmt.Println(pw)
+	}
+}
+
+func TestDigitSymbolSeparator(t *testing.T) {
+	wl, err := NewWordList([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
+	if err != nil {
+		t.Errorf("Couldn't create syllable generator: %v", err)
+	}
+	r := NewWLRecipe(12, wl)
+	r.SeparatorFunc = SFDigitsSymbols
+	r.Capitalize = CSNone
+
+	sf := r.SF()
+
+	for i := 0; i < 20; i++ {
+		sepP, err := sf(r.Length - 1)
+		if err != nil {
+			t.Error(err)
+		}
+		sPwd := sepP.String()
+		if !strings.ContainsAny(sPwd, "0123456789") {
+			t.Errorf("separator p %v should contain a digit", sPwd)
+		}
+		if !strings.ContainsAny(sPwd, ctSymbols) {
+			t.Errorf("separator p %v should contain a symbol", sPwd)
+		}
 	}
 }
 

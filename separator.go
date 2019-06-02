@@ -82,7 +82,7 @@ var (
 	SFDigits1            = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Digits}})                     // Single digit separator
 	SFDigitsNoAmbiguous1 = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Digits, Exclude: Ambiguous}}) // Single digit, no ambiguous
 	SFSymbols            = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Symbols}})                    // Symbols
-	SFDigitsSymbols      = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Symbols | Digits}})           // Symbols and digits
+	SFDigitsSymbols      = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Require: Symbols | Digits}})         // Symbols and digits
 )
 
 /**
