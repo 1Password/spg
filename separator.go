@@ -52,6 +52,21 @@ var nullToken = Token{
 	tType: AtomType,
 }
 
+func sfConstantFull(length int, s string) (*Password, error) {
+	ts := make(Tokens, length)
+	for i := range ts {
+		ts[i] = Token{value: s, tType: AtomType}
+	}
+	return &Password{Entropy: 0.0, tokens: ts}, nil
+}
+
+func sfConstant(s string) SFFunction {
+	var sf SFFunction
+	sf = func(length int) (*Password, error) { return sfConstantFull(length, s) }
+	return sf
+
+}
+
 // sfNull generates a separator password of length length with empty tokens
 func sfNull(length int) (*Password, error) {
 	ts := make(Tokens, length)
@@ -61,24 +76,16 @@ func sfNull(length int) (*Password, error) {
 	return &Password{Entropy: 0.0, tokens: ts}, nil
 }
 
-// Pre-baked Separator Recipes
-var (
-	SRDigits1            = SeparatorRecipe{cr: CharRecipe{Allow: Digits}}
-	SRDigitsNoAmbiguous1 = SeparatorRecipe{cr: CharRecipe{Allow: Digits, Exclude: Ambiguous}} // Single digit, no ambiguous
-	SRSymbols            = SeparatorRecipe{cr: CharRecipe{Allow: Symbols}}                    // Symbols
-	SRDigitsSymbols      = SeparatorRecipe{cr: CharRecipe{Allow: Symbols | Digits}}           // Symbols and digits
-)
-
 // Pre-baked Separator functions
 var (
-	SFNone               SFFunction = sfNull
-	SFDigits1                       = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Digits}})                     // Single digit separator
-	SFDigitsNoAmbiguous1            = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Digits, Exclude: Ambiguous}}) // Single digit, no ambiguous
-	SFSymbols                       = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Symbols}})                    // Symbols
-	SFDigitsSymbols                 = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Symbols | Digits}})           // Symbols and digits
+	SFNone               = sfConstant("")
+	SFDigits1            = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Digits}})                     // Single digit separator
+	SFDigitsNoAmbiguous1 = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Digits, Exclude: Ambiguous}}) // Single digit, no ambiguous
+	SFSymbols            = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Symbols}})                    // Symbols
+	SFDigitsSymbols      = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Symbols | Digits}})           // Symbols and digits
 )
 
 /**
- ** Copyright 2018 AgileBits, Inc.
+ ** Copyright 2018, 2019 AgileBits, Inc.
  ** Licensed under the Apache License, Version 2.0 (the "License").
  **/

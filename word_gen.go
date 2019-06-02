@@ -136,13 +136,8 @@ func (r WLRecipe) Generate() (*Password, error) {
 		return nil, fmt.Errorf("don't ask for passwords of length %d", r.Length)
 	}
 
-	var sf SFFunction
-	if r.SeparatorFunc == nil {
-		sf = sfNull
-	} else {
-		sf = r.SeparatorFunc
-	}
-	sepP, err := sf(int(r.Size()) - 1)
+	sf := r.SF()
+	sepP, err := sf(r.Length - 1)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't generate separators: %v", err)
 	}
@@ -213,7 +208,8 @@ func (r WLRecipe) Entropy() float32 {
 	// else there is no additional entropy contribution from capitalization
 
 	// Entropy contribution of separators
-	sp, _ := r.SeparatorFunc(r.Length)
+	sf := r.SF()
+	sp, _ := sf(r.Length - 1)
 	ent += FloatE(sp.Entropy)
 
 	return float32(ent)
@@ -230,3 +226,19 @@ func (wl *WordList) capitalizeRatio() float64 {
 	s := float64(len(wl.words))
 	return (s - float64(wl.unCapitalizableCount)) / s
 }
+
+// SF will construct a separator function from the recipe
+func (r WLRecipe) SF() SFFunction {
+	if r.SeparatorFunc != nil {
+		return r.SeparatorFunc
+	}
+	if len(r.SeparatorChar) > 0 {
+		return sfConstant(r.SeparatorChar)
+	}
+	return sfConstant("")
+}
+
+/**
+ ** Copyright 2018, 2019 AgileBits, Inc.
+ ** Licensed under the Apache License, Version 2.0 (the "License").
+ **/
