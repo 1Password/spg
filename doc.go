@@ -77,6 +77,6 @@ License
 
 This package is Copyright 2017, 2018 by AgileBits, Inc and is licensed under the Apache 2.0 agreement.
 */
-package spg
+package spg // import "go.1password.io/spg"
 
 // This file is for package documentation only
