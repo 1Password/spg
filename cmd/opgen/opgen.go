@@ -87,10 +87,16 @@ func main() {
 	// pwd, _ := recipe.Generate()
 	// fmt.Println(pwd.String())
 	case "characters":
-		charactersCommand.Parse(os.Args[2:])
+		if err := charactersCommand.Parse(os.Args[2:]); err != nil {
+			printUsage()
+			os.Exit(ExitUsage)
+		}
 		generator = charGenerator()
 	case "words":
-		wordlistCommand.Parse(os.Args[2:])
+		if err := wordlistCommand.Parse(os.Args[2:]); err != nil {
+			printUsage()
+			os.Exit(ExitUsage)
+		}
 		generator = wlGenerator()
 	default:
 		printUsage()
@@ -195,7 +201,7 @@ func charGenerator() *spg.CharRecipe {
 }
 
 func loadWordListFile(path string) *spg.WordList {
-	data, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(path) // #nosec G304
 	if err != nil {
 		log.Fatalln("Error opening file:", path, err)
 	}
