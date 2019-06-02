@@ -254,7 +254,11 @@ func NewSFFunction(r CharRecipe) SFFunction {
 // Pre-baked Separator functions
 
 func sfWrap(r CharRecipe) (string, FloatE) {
-	p, _ := r.Generate() // Not sure how to deal with errors here.
+	p, err := r.Generate()
+	// perhaps not the best error handling, but can't think of anything better
+	if err != nil {
+		return "", 0.0
+	}
 	return p.String(), FloatE(p.Entropy)
 }
 
