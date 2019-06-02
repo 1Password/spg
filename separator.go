@@ -6,6 +6,11 @@ package spg
 	and creating and setting separator functions is useful. That is what is
 	defined in this section.
 
+	The over-all strategy is to generate a character type password that contains all
+	of the separators needed instead of generating a separate separator for each separation.
+	This allows us to use the full power of our character recipes so that we can do things
+	like saying that should in toto have at least one digit and at least one symbol
+
 ***/
 
 // A SeparatorRecipe doesn't necessarily have a length, but it may have
@@ -13,11 +18,13 @@ package spg
 // between words
 type SeparatorRecipe struct {
 	cr CharRecipe
-	t  *sfTokenizer
+	t  *sfTokenizer // we aren't making any use of this now
 }
 
 // sfTokenizer will be instructions for how to tokenize the generated separator
-// string so that its parts can be selected as needed
+// string so that its parts can be selected as needed.
+// This may be useful to help specify cases where we want different separations in the same password
+// to behave differently. In anticipation of issue https://github.com/1Password/spg/issues/18
 type sfTokenizer struct{}
 
 func (sr SeparatorRecipe) charRecipe(length int) *CharRecipe {
@@ -29,9 +36,10 @@ func (sr SeparatorRecipe) charRecipe(length int) *CharRecipe {
 // SFFunctionFull is a type for a function that returns a password
 // which will be used to supply the parts for separating components
 // (to be used within a password) and the entropy it contributes
+// "Full" in this context means uncurried
 type SFFunctionFull func(SeparatorRecipe, int) (Password, error)
 
-// SFFunction is a curried SFFunctionFull, but has already consumed
+// SFFunction is a curried SFFunctionFull that has already consumed
 // the SeparatorRecipe
 type SFFunction func(int) (*Password, error)
 
@@ -47,11 +55,7 @@ func sfWrap(sr SeparatorRecipe, length int) (*Password, error) {
 	return r.Generate()
 }
 
-var nullToken = Token{
-	value: "",
-	tType: AtomType,
-}
-
+// sfConstant is for when the separator is constant
 func sfConstantFull(length int, s string) (*Password, error) {
 	ts := make(Tokens, length)
 	for i := range ts {
@@ -60,20 +64,13 @@ func sfConstantFull(length int, s string) (*Password, error) {
 	return &Password{Entropy: 0.0, tokens: ts}, nil
 }
 
+// sfConstant consumes the constant separator leaving a function that
+// just requires a length
 func sfConstant(s string) SFFunction {
 	var sf SFFunction
+	// Give me lambdas or give me death!
 	sf = func(length int) (*Password, error) { return sfConstantFull(length, s) }
 	return sf
-
-}
-
-// sfNull generates a separator password of length length with empty tokens
-func sfNull(length int) (*Password, error) {
-	ts := make(Tokens, length)
-	for i := range ts {
-		ts[i] = nullToken
-	}
-	return &Password{Entropy: 0.0, tokens: ts}, nil
 }
 
 // Pre-baked Separator functions
