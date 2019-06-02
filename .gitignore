@@ -16,3 +16,4 @@ vendor/*/
 
 ./opgen
 cmd/opgen/opgen
+opgen
