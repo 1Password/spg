@@ -530,6 +530,85 @@ func TestDigitSymbolSeparator(t *testing.T) {
 			t.Errorf("separator p %v should contain a symbol", sPwd)
 		}
 	}
+
+	// and lets make sure that the final generated passwords meet the requirements
+	for i := 0; i < 20; i++ {
+		pwd, err := r.Generate()
+		if err != nil {
+			t.Error(err)
+		}
+		p := pwd.String()
+		if !strings.ContainsAny(p, "0123456789") {
+			t.Errorf("separator p %v should contain a digit", p)
+		}
+		if !strings.ContainsAny(p, ctSymbols) {
+			t.Errorf("separator p %v should contain a symbol", p)
+		}
+	}
+}
+
+func TestDigitSymbolSeparatorShort(t *testing.T) {
+	wl, err := NewWordList([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
+	if err != nil {
+		t.Errorf("Couldn't create syllable generator: %v", err)
+	}
+	// There will only be two separators, this this will require more work on requirements
+	r := NewWLRecipe(3, wl)
+	r.SeparatorFunc = SFDigitsSymbols
+	r.Capitalize = CSNone
+
+	sf := r.SF()
+
+	for i := 0; i < 20; i++ {
+		sepP, err := sf(r.Length - 1)
+		if err != nil {
+			t.Error(err)
+		}
+		sPwd := sepP.String()
+		if !strings.ContainsAny(sPwd, "0123456789") {
+			t.Errorf("separator p %v should contain a digit", sPwd)
+		}
+		if !strings.ContainsAny(sPwd, ctSymbols) {
+			t.Errorf("separator p %v should contain a symbol", sPwd)
+		}
+	}
+
+	for i := 0; i < 20; i++ {
+		pwd, err := r.Generate()
+		if err != nil {
+			t.Error(err)
+		}
+		p := pwd.String()
+		if !strings.ContainsAny(p, "0123456789") {
+			t.Errorf("separator p %v should contain a digit", p)
+		}
+		if !strings.ContainsAny(p, ctSymbols) {
+			t.Errorf("separator p %v should contain a symbol", p)
+		}
+	}
+}
+
+func TestDigitSymbolSeparatorTooShort(t *testing.T) {
+	wl, err := NewWordList([]string{"syl", "lab", "bull", "gen", "er", "at", "or"})
+	if err != nil {
+		t.Errorf("Couldn't create syllable generator: %v", err)
+	}
+	// This will make meeting the requirements impossible
+	r := NewWLRecipe(2, wl)
+	r.SeparatorFunc = SFDigitsSymbols
+	r.Capitalize = CSNone
+
+	sf := r.SF()
+
+	sepP, err := sf(r.Length - 1)
+	if err == nil {
+		t.Errorf("Should have have been able to generate separator set %v", sepP)
+	}
+
+	pwd, err := r.Generate()
+	if err == nil {
+		t.Errorf("Should have have been able to generate password %v", pwd)
+	}
 }
 
 /**
