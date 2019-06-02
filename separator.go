@@ -45,14 +45,10 @@ type SFFunction func(int) (*Password, error)
 
 // NewSFFunction makes a Separator Function from a CharRecipe
 func NewSFFunction(r SeparatorRecipe) SFFunction {
-	var sf SFFunction
-	sf = func(length int) (*Password, error) { return sfWrap(r, length) }
-	return sf
-}
-
-func sfWrap(sr SeparatorRecipe, length int) (*Password, error) {
-	r := sr.charRecipe(length)
-	return r.Generate()
+	return func(length int) (*Password, error) {
+		cr := r.charRecipe(length)
+		return cr.Generate()
+	}
 }
 
 // sfConstant is for when the separator is constant
