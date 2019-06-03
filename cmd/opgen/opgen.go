@@ -111,9 +111,7 @@ func main() {
 }
 
 func createSeparatorFunc(value string) spg.SFFunction {
-	return func() (string, spg.FloatE) {
-		return value, 0
-	}
+	return spg.SFConstant(value)
 }
 
 func parseCharacterClasses(value string, defaults []string) spg.CTFlag {

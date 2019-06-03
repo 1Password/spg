@@ -233,9 +233,9 @@ func (r WLRecipe) SF() SFFunction {
 		return r.SeparatorFunc
 	}
 	if len(r.SeparatorChar) > 0 {
-		return sfConstant(r.SeparatorChar)
+		return SFConstant(r.SeparatorChar)
 	}
-	return sfConstant("")
+	return SFConstant("")
 }
 
 /**

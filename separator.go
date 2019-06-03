@@ -60,9 +60,9 @@ func sfConstantFull(length int, s string) (*Password, error) {
 	return &Password{Entropy: 0.0, tokens: ts}, nil
 }
 
-// sfConstant consumes the constant separator leaving a function that
+// SFConstant consumes the constant separator leaving a function that
 // just requires a length
-func sfConstant(s string) SFFunction {
+func SFConstant(s string) SFFunction {
 	var sf SFFunction
 	// Give me lambdas or give me death!
 	sf = func(length int) (*Password, error) { return sfConstantFull(length, s) }
@@ -71,7 +71,7 @@ func sfConstant(s string) SFFunction {
 
 // Pre-baked Separator functions
 var (
-	SFNone               = sfConstant("")
+	SFNone               = SFConstant("")
 	SFDigits1            = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Digits}})                     // Single digit separator
 	SFDigitsNoAmbiguous1 = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Digits, Exclude: Ambiguous}}) // Single digit, no ambiguous
 	SFSymbols            = NewSFFunction(SeparatorRecipe{cr: CharRecipe{Allow: Symbols}})                    // Symbols
