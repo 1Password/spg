@@ -34,13 +34,14 @@ var ccMap = map[string]spg.CTFlag{
 }
 
 var separatorMap = map[string]spg.SFFunction{
-	"hyphen":     createSeparatorFunc("-"),
-	"space":      createSeparatorFunc(" "),
-	"comma":      createSeparatorFunc(","),
-	"period":     createSeparatorFunc("."),
-	"underscore": createSeparatorFunc("_"),
-	"digit":      spg.SFDigits1,
-	"none":       spg.SFNone,
+	"hyphen":      createSeparatorFunc("-"),
+	"space":       createSeparatorFunc(" "),
+	"comma":       createSeparatorFunc(","),
+	"period":      createSeparatorFunc("."),
+	"underscore":  createSeparatorFunc("_"),
+	"digit":       spg.SFDigits1,
+	"none":        spg.SFNone,
+	"digitSymbol": spg.SFDigitsSymbols,
 }
 
 var capitalizeMap = map[string]spg.CapScheme{
@@ -242,7 +243,7 @@ opgen words [--list=<wordlist> | --file=<wordlistfile>] [--size=<n>]
 	--entropy      show the entropy of the password recipe
 
 	<wordlist>: words, syllables
-	<separatorclass>: hyphen, space, comma, period, underscore, digit, none
+	<separatorclass>: hyphen, space, comma, period, underscore, digit, digitSymbol, none
 	capitalization <scheme>: none, first, all, random, one
 	`)
 }
