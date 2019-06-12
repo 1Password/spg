@@ -554,7 +554,7 @@ func TestDigitSymbolSeparatorShort(t *testing.T) {
 	}
 	// There will only be two separators, this this will require more work on requirements
 	r := NewWLRecipe(3, wl)
-	r.SeparatorFunc = SFDigitsSymbols
+	r.SeparatorFunc = SFDigitsAndSymbols
 	r.Capitalize = CSNone
 
 	sf := r.SF()
@@ -595,7 +595,7 @@ func TestDigitSymbolSeparatorTooShort(t *testing.T) {
 	}
 	// This will make meeting the requirements impossible
 	r := NewWLRecipe(2, wl)
-	r.SeparatorFunc = SFDigitsSymbols
+	r.SeparatorFunc = SFDigitsAndSymbols
 	r.Capitalize = CSNone
 
 	sf := r.SF()
