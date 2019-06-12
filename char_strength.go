@@ -51,7 +51,7 @@ func n(allowed set.Set, required set.Set, length int) *big.Int {
 	// union of all sets in the password recipe.
 	R := unionAll(allowed.Union(required))
 	totalCount := &big.Int{}
-	totalCount.Exp(toBigInt(R.Cardinality()), toBigInt(length), nil)
+	totalCount.Exp(toBigInt(R.Cardinality()), toBigInt(length), nil) // #nosec G105
 
 	// Each of these sets of sets represents a password recipe that we
 	// will reject and thus must subtract from our total count.
