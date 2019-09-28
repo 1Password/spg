@@ -171,6 +171,15 @@ func TestSuccessProbability(t *testing.T) {
 		{RequireSets: []string{lower, upper, digits, symbols}, Length: 18, P: 0.897070},
 		{RequireSets: []string{lower, upper, digits, symbols}, Length: 19, P: 0.910953},
 		{RequireSets: []string{lower, upper, digits, symbols}, Length: 20, P: 0.922832},
+
+		// Test to parallel one of our Rust port cases
+		{
+			AllowChars:   "BACX",
+			RequireSets:  []string{"Y123", "abc"},
+			ExcludeChars: "XYZ",
+			Length:       20,
+			P:            0.999400, // not correct value
+		},
 	}
 
 	for _, exp := range tvecs {
