@@ -136,11 +136,10 @@ func (r WLRecipe) Generate() (*Password, error) {
 		return nil, fmt.Errorf("don't ask for passwords of length %d", r.Length)
 	}
 
-	var sf SFFunction
-	if r.SeparatorFunc == nil {
-		sf = SFFunction(func() (string, FloatE) { return r.SeparatorChar, 0.0 })
-	} else {
-		sf = r.SeparatorFunc
+	sf := r.SF()
+	sepP, err := sf(r.Length - 1)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't generate separators: %v", err)
 	}
 
 	// Construct a map of which words to capitalize
@@ -174,7 +173,7 @@ func (r WLRecipe) Generate() (*Password, error) {
 			ts = append(ts, Token{w, AtomType})
 		}
 		if i < r.Length-1 {
-			sep, _ := sf()
+			sep := sepP.tokens[i].value
 			if len(sep) > 0 {
 				ts = append(ts, Token{sep, SeparatorType})
 			}
@@ -209,11 +208,9 @@ func (r WLRecipe) Entropy() float32 {
 	// else there is no additional entropy contribution from capitalization
 
 	// Entropy contribution of separators
-	sepEnt := FloatE(0.0)
-	if r.SeparatorFunc != nil {
-		_, sepEnt = r.SeparatorFunc()
-	}
-	ent += (FloatE(r.Length) - 1.0) * sepEnt
+	sf := r.SF()
+	sp, _ := sf(r.Length - 1)
+	ent += FloatE(sp.Entropy)
 
 	return float32(ent)
 }
@@ -230,53 +227,18 @@ func (wl *WordList) capitalizeRatio() float64 {
 	return (s - float64(wl.unCapitalizableCount)) / s
 }
 
-/*** Separator functions
-
-	Wordlist (syllable list) type generators need separators between the words,
-	and creating and setting separator functions is useful. That is what is
-	defined in this section.
-
-***/
-
-// SFFunction is a type for a function that returns a string
-// (to be used within a password) and the entropy it contributes
-type SFFunction func() (string, FloatE)
-
-// NewSFFunction makes a Separator Function from a CharRecipe
-func NewSFFunction(r CharRecipe) SFFunction {
-
-	// I need to learn how to proper create factories.
-	var sf SFFunction
-	sf = func() (string, FloatE) { return sfWrap(r) }
-	return sf
-}
-
-// Pre-baked Separator functions
-
-func sfWrap(r CharRecipe) (string, FloatE) {
-	p, err := r.Generate()
-	// perhaps not the best error handling, but can't think of anything better
-	if err != nil {
-		return "", 0.0
+// SF will construct a separator function from the recipe
+func (r WLRecipe) SF() SFFunction {
+	if r.SeparatorFunc != nil {
+		return r.SeparatorFunc
 	}
-	return p.String(), FloatE(p.Entropy)
+	if len(r.SeparatorChar) > 0 {
+		return SFConstant(r.SeparatorChar)
+	}
+	return SFConstant("")
 }
-
-// SFNone empty separator
-// func SFNone() (string, FloatE) { return "", 0.0 }
-
-// Pre-baked Separator functions
-var (
-	SFNone               SFFunction = func() (string, FloatE) { return "", FloatE(0.0) }                      // Empty separator
-	SFDigits1                       = NewSFFunction(CharRecipe{Length: 1, Allow: Digits})                     // Single digit separator
-	SFDigits2                       = NewSFFunction(CharRecipe{Length: 2, Allow: Digits})                     // Double digit separator
-	SFDigitsNoAmbiguous1            = NewSFFunction(CharRecipe{Length: 1, Allow: Digits, Exclude: Ambiguous}) // Single digit, no ambiguous
-	SFDigitsNoAmbiguous2            = NewSFFunction(CharRecipe{Length: 2, Allow: Digits, Exclude: Ambiguous}) // Double digit, no ambiguous
-	SFSymbols                       = NewSFFunction(CharRecipe{Length: 1, Allow: Symbols})                    // Symbols
-	SFDigitsSymbols                 = NewSFFunction(CharRecipe{Length: 1, Allow: Symbols | Digits})           // Symbols and digits
-)
 
 /**
- ** Copyright 2018 AgileBits, Inc.
+ ** Copyright 2018, 2019 AgileBits, Inc.
  ** Licensed under the Apache License, Version 2.0 (the "License").
  **/
