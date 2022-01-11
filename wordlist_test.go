@@ -86,7 +86,7 @@ func TestWLGenerator(t *testing.T) {
 	// (Sorry for all of the little pieces. I had a small error when I
 	// did this all in one step)
 	wRE := "\\p{L}+" // unicode letter
-	sepRE := "\\Q" + a.SeparatorChar + "\\E"
+	sepRE := regexp.QuoteMeta(a.SeparatorChar)
 	preCount := "{" + strconv.Itoa(a.Length-1) + "}"
 	leadRE := "(?:" + wRE + sepRE + ")" + preCount
 	res := "^" + leadRE + wRE + "$"
@@ -171,7 +171,7 @@ func TestWLFirstCap(t *testing.T) {
 		}
 		firstWRE := "\\p{Lu}\\p{Ll}+"
 		wRE := "\\p{Ll}+" // unicode letter
-		sepRE := "\\Q" + r.SeparatorChar + "\\E"
+		sepRE := regexp.QuoteMeta(r.SeparatorChar)
 		preCount := "{" + strconv.Itoa(r.Length-2) + "}"
 		leadRE := firstWRE + sepRE + "(?:" + wRE + sepRE + ")" + preCount
 		res := "^" + leadRE + wRE + "$"
@@ -199,7 +199,7 @@ func TestWLOneCap(t *testing.T) {
 	tcWRE := "\\p{Lu}\\pL+"
 	lcWRE := "\\p{Ll}\\pL+"
 	wRE := "(?:" + tcWRE + ")|(?:" + lcWRE + ")"
-	sepRE := "\\Q" + r.SeparatorChar + "\\E"
+	sepRE := regexp.QuoteMeta(r.SeparatorChar)
 	preCount := "{" + strconv.Itoa(r.Length-1) + "}"
 	leadRE := wRE + sepRE + "(?:" + wRE + sepRE + ")" + preCount
 	res := "^" + leadRE + wRE + "$"
@@ -259,7 +259,7 @@ func TestWLCapAll(t *testing.T) {
 	tcWRE := "\\p{Lu}\\pL+"
 	lcWRE := "\\p{Ll}\\pL+"
 	wRE := "(?:" + tcWRE + ")"
-	sepRE := "\\Q" + r.SeparatorChar + "\\E"
+	sepRE := regexp.QuoteMeta(r.SeparatorChar)
 	preCount := "{" + strconv.Itoa(r.Length-1) + "}"
 	leadRE := wRE + sepRE + "(?:" + wRE + sepRE + ")" + preCount
 	res := "^" + leadRE + wRE + "$"
