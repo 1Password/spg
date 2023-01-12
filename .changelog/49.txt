@@ -1,0 +1,5 @@
+```release-note:fix
+Use QuoteMeta in tests
+
+Credit: @dolman@github.com
+```
