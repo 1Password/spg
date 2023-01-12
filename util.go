@@ -2,7 +2,6 @@ package spg
 
 import (
 	rand "crypto/rand"
-	"encoding/binary"
 	"fmt"
 	"math"
 	"strings"
@@ -40,13 +39,14 @@ func nFromString(ab string, n int) (string, float64) {
 
 // randomUint32 creates a random 32 bit unsigned integer
 func randomUint32() uint32 {
-	b := make([]byte, 4)
-	_, err := rand.Read(b)
+	var b [4]byte
+	_, err := rand.Read(b[:])
 	if err != nil {
 		panic("PRNG gen error:" + err.Error())
 	}
 
-	return binary.BigEndian.Uint32(b)
+	// Same as binary.BigEndian.Uint32(b[:])
+	return uint32(b[3]) | uint32(b[2])<<8 | uint32(b[1])<<16 | uint32(b[0])<<24
 }
 
 // entropySimple takes the password length and the number of elements in the alphabet
