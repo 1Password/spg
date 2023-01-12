@@ -72,7 +72,6 @@ var flagCapitalize = wordlistCommand.String("capitalize", "none", "capitalize pa
 var flagEntropyWL = wordlistCommand.Bool("entropy", false, "show the entropy of the password recipe")
 
 func main() {
-	flag.Parse()
 	if len(os.Args) == 1 {
 		printUsage()
 		os.Exit(ExitUsage)
