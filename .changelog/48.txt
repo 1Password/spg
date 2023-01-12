@@ -1,0 +1,5 @@
+```release-note:improvement
+Simplify randomUint32: remove dependency on encoding/binary
+
+Credit: @dolman@github.com
+```
