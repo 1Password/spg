@@ -1,0 +1,5 @@
+```release-note:improvement
+opgen: fix display of usage when no arguments
+
+Credit: @dolman@github.com
+```
