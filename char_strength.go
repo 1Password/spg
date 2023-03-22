@@ -1,6 +1,7 @@
 package spg
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"math/big"
@@ -12,8 +13,18 @@ import (
 // This is where we do the math for the entropy calculation for character
 // passwords. The trick is for when a character is _required_ from a particular set
 
-func (r CharRecipe) entropyWithRequired() float32 {
-	intValue := r.n()
+// MaxRequiredSets is how many required sets of characters we can cope with.
+// The compuational complexity of the entropy calculation
+// in the presense of required sets uses memory and time
+// proportionate to 2^{number of required sets}. Note that this is not a limit
+// on the size of any required set.
+const MaxRequiredSets = 8
+
+func (r CharRecipe) entropyWithRequired() (float32, err) {
+	intValue, err := r.n()
+	if err != nil {
+		return nil, err
+	}
 	floatValue := big.NewFloat(0).SetInt(intValue)
 
 	// big.Float doesn't have a Log function, so we need to use a float64.
@@ -31,7 +42,10 @@ func (r CharRecipe) entropyWithRequired() float32 {
 	return float32(math.Log2(float64Mantissa) + float64(expo))
 }
 
-func (r CharRecipe) n() *big.Int {
+func (r CharRecipe) n() (*big.Int, error) {
+	if len(r.requiredSets) > MaxRequiredSets {
+		return nil, fmt.Errorf("Too many (%d) required sets. Maximium %d", len(r.requiredSets), MaxRequiredSets)
+	}
 	allowed := set.NewSet()
 	allowed.Add(r.allowedSet)
 	required := set.NewSet()
@@ -39,7 +53,7 @@ func (r CharRecipe) n() *big.Int {
 		required.Add(req.s)
 	}
 
-	return n(allowed, required, r.Length)
+	return n(allowed, required, r.Length), nil
 }
 
 // n is the number of possible passwords that can be generated.
