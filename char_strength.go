@@ -122,7 +122,7 @@ func (r CharRecipe) SuccessProbability() float32 {
 	   on a single trial is the ratio of r.n()/rWithAllRequiredChangedToAllowed.n()
 
 	   But to avoid having to read the Go docs about big Quotients, replace that
-	   division with a substraction of their logarithms. Conveniently, we have
+	   division with a subtraction of their logarithms. Conveniently, we have
 	   those as the Entropy. Then we just raise 2 to that difference.
 	*/
 

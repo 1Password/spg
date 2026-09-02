@@ -29,8 +29,8 @@ const ( // character types
 	These are useful for when we need to perform set operations such as set difference (which we do need for a number of different reasons)
 
 3. `[]string` where each string in the slice is a single rune
-	This is needed for when we need to select uniform random rune from
-	the set. This representation is only needed for the total alphebet
+	This is needed for when we need to select a uniform random rune from
+	the set. This representation is only needed for the total alphabet
 	passwords are generated from.
 
 	To (hopefully) avoid confusion with other arrays for strings,
@@ -46,7 +46,7 @@ type required []string
 // charList is a slice of individual characters (each as a string type)
 type charList []string
 
-// CTFlag is the type for the be
+// CTFlag is the type for the character type flags
 type CTFlag uint32
 
 // Character type flags
@@ -194,7 +194,7 @@ func (r CharRecipe) Entropy() float32 {
 	return float32(entropySimple(r.Length, size))
 }
 
-// CharRecipe are generator attributes relevent for character list generation
+// CharRecipe are generator attributes relevant for character list generation
 //
 // Allow - Any character from any of these sets may be present in generated password.
 //

@@ -16,7 +16,7 @@ const (
 	rtWordlist
 )
 
-// Exit statuses for os.Exit(). Follow narrow Unix convenstions (1-127 for errors, 0 for success)
+// Exit statuses for os.Exit(). Follow narrow Unix conventions (1-127 for errors, 0 for success)
 const (
 	ExitSuccess  = iota // Success must be 0
 	ExitCatchall        // Catch all should be 1. For all otherwise unspecified errors
