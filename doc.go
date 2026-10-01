@@ -52,7 +52,7 @@ The word list and character recipes (WLRecipe, CharRecipe) implement a Generator
 interface with two methods, Generate and Entropy.
 
 Generate returns a Password. There is a fair amount of internal structure
-to a Password object, but the ones you are most after is available through
+to a Password object, but the ones you are most after are available through
 the Password.String() method and the Entropy field.
 
 Entropy returns the entropy of a password that would be generated
@@ -68,7 +68,7 @@ It does, however, make sense when a password is drawn uniformly from a space of 
 When the distribution is uniform, the (Shannon) entropy is the same as the min-entropy (based on probability of getting the most likely result).
 
 This package does ensure that passwords are generated uniformly given the recipe
-passed to the generator, with the exception of the interaction of capitalizaton for some wordlists.
+passed to the generator, with the exception of the interaction of capitalization for some wordlists.
 In those cases, min-entropy is reported. That is, where min-entropy is not the same as Shannon Entropy Entropy() returns the min-entropy.
 
 Entropy is a function solely of the recipe.

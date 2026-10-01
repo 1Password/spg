@@ -9,7 +9,7 @@ import (
 )
 
 // subtractString returns a copy of source with any characters that appear in remove removed.
-// It does not presever order.
+// It does not preserve order.
 func subtractString(source, remove string) string {
 
 	src := setFromString(source)
@@ -20,7 +20,7 @@ func subtractString(source, remove string) string {
 	return out
 }
 
-// nFromString picks characters from a sting. This is for internal use only. It does not check for duplicates in the string
+// nFromString picks characters from a string. This is for internal use only. It does not check for duplicates in the string
 func nFromString(ab string, n int) (string, float64) {
 	if len(ab) == 0 {
 		return "", 0.0
@@ -70,7 +70,7 @@ func entropySimple(length int, nelem int) FloatE {
 // It panics if a security-sensitive random number cannot be created or if n == 0.
 // Care is taken to avoid modulo bias.
 //
-// Based on Int31n from the math/rand package..
+// Based on Int31n from the math/rand package.
 func randomUint32n(n uint32) uint32 {
 	if n < 1 {
 		panic("randomUint32n called with 0")
